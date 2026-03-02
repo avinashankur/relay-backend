@@ -1,78 +1,63 @@
-import { app } from "./app";
+import "dotenv/config";
+import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./shared/services/logger";
 
-const PORT = Number(env.PORT ?? 5000);
+const PORT = Number(env.PORT);
+const app = createApp();
 
 // ── Validate critical environment variables ───────────────────────────────
 const required = [
   "DATABASE_URL",
-  "REDIS_URL",
-  "JWT_PRIVATE_KEY",
-  "JWT_PUBLIC_KEY",
-  "RESEND_API_KEY",
+  // "REDIS_URL",
+  // "JWT_PRIVATE_KEY",
+  // "JWT_PUBLIC_KEY",
+  // "RESEND_API_KEY",
   "NODE_ENV",
 ];
 
 const missing = required.filter((key) => !process.env[key]);
 
-if (missing.length > 10) {
+if (missing.length > 0) {
   logger.fatal({ missing }, "Missing required environment variables");
   process.exit(1);
 }
 
 // ── Connect to Postgres via Prisma ────────────────────────────────────────
 const server = app.listen(PORT, () => {
-  logger.info({ port: PORT }, "HTTP server listening");
+  logger.info(
+    { port: PORT },
+    `HTTP server listening on http://localhost:${PORT}`,
+  );
 });
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────
-const shutdown = async (signal: string): Promise<void> => {
-  logger.info({ signal }, "Shutdown signal received — draining connections");
+async function shutdown(signal: string): Promise<void> {
+  logger.info(`${signal} received — shutting down gracefully`);
 
-  // Stop accepting new connections
-  server.close(async (err) => {
-    if (err) {
-      logger.error({ err }, "Error closing HTTP server");
-    }
-
-    try {
-      // Stop BullMQ workers cleanly
-      // await stopWorkers();
-      // logger.info('BullMQ workers stopped');
-
-      // Disconnect Prisma
-      // await prisma.$disconnect();
-      // logger.info('Prisma disconnected');
-
-      // Disconnect Redis
-      // await redis.quit();
-      // logger.info('Redis disconnected');
-
-      logger.info("Graceful shutdown complete");
-      process.exit(0);
-    } catch (shutdownErr) {
-      logger.error({ err: shutdownErr }, "Error during graceful shutdown");
-      process.exit(1);
-    }
+  server.close(async () => {
+    logger.info("HTTP server closed");
+    // await prisma.$disconnect();
+    // await redis.quit();
+    logger.info("Shutdown complete");
+    process.exit(0);
   });
 
-  // Force exit if shutdown takes too long (PM2 kill timeout is typically 5s)
+  // Force exit if graceful shutdown takes too long
   setTimeout(() => {
-    logger.warn("Forced shutdown after timeout");
+    logger.error("Graceful shutdown timed out — forcing exit");
     process.exit(1);
   }, 10_000);
-};
+}
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
-// Unhandled rejection / exception guards — log and let PM2 restart
 process.on("unhandledRejection", (reason) => {
   logger.error({ reason }, "Unhandled promise rejection");
 });
 
 process.on("uncaughtException", (err) => {
-  logger.fatal({ err }, "Uncaught exception — shutting down");
+  logger.fatal({ err }, "Uncaught exception — exiting");
   process.exit(1);
 });
