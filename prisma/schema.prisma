@@ -19,28 +19,29 @@ enum AuthProvider {
   github
 }
 
-enum MemberRole {
-  OWNER
+enum UserRole {
   ADMIN
   USER
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   name          String?
   avatarUrl     String?
-  suspended     Boolean  @default(false)
-  suspendedAt   DateTime
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role          UserRole  @default(USER)
+  suspended     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? // soft delete - hard delete schedeuled 30 days later
 
   // Relations
   authAccounts AuthAccount[]
-  memberships  Membership[]
   sessions     Session[]
   auditEvents  AuditEvent[]
+
+  @@index([email])
 }
 
 model AuthAccount {
@@ -60,44 +61,6 @@ model AuthAccount {
   @@map("auth_accounts")
 }
 
-// Organization
-// Top level tenant. All org scoped data must include orgId in queries
-
-model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
-
-  // Relations
-  memberships Membership[]
-  invites     Invite[]
-  auditEvents AuditEvent[]
-  sessions    Session[]
-
-  @@index([slug])
-  @@map("organizations")
-}
-
-// Membership
-model Membership {
-  id        String     @id @default(cuid())
-  role      MemberRole @default(USER)
-  createdAt DateTime   @default(now())
-  updateAt  DateTime   @updatedAt
-
-  userId String
-  orgId  String
-  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, orgId]) // one membership per user per org
-  @@index([orgId, role])
-  @@index([userId])
-  @@map("memberships")
-}
-
 // Session
 model Session {
   id               String    @id @default(cuid())
@@ -114,35 +77,12 @@ model Session {
   // tenant context
   orgId  String?
   userId String
-  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  irg    Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([refreshTokenHash])
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
-}
-
-// Invite
-// Single-use invitation token sent to a prospective org member.
-// The raw token is sent via email; only the hash is persisted.
-// 
-model Invite {
-  id        String     @id @default(cuid())
-  email     String
-  role      MemberRole @default(USER)
-  tokenHash String     @unique // SHA-256(rawInviteToken)
-  expiresAt DateTime
-  usedAt    DateTime? // set on acceptance; null = still valid
-  createdAt DateTime   @default(now())
-
-  orgId String
-  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  @@index([orgId])
-  @@index([email]) // look up pending invites for an email address
-  @@index([expiresAt])
-  @@map("invites")
 }
 
 // AuditEvent
@@ -159,11 +99,9 @@ model AuditEvent {
   // Both optional: system events may have no userId; cross-org events may have no orgId
   userId String?
   orgId  String?
-  user   User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  org    Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
-  @@index([orgId])
   @@index([createdAt]) // range queries and exports
   @@index([action]) // filter by event type
   @@map("audit_events")
