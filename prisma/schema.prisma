@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuthProvider {
+  password
+  google
+  github
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  USER
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  name          String?
+  avatarUrl     String?
+  suspended     Boolean  @default(false)
+  suspendedAt   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  authAccounts AuthAccount[]
+  memberships  Membership[]
+  sessions     Session[]
+  auditEvents  AuditEvent[]
+}
+
+model AuthAccount {
+  id         String       @default(cuid())
+  provider   AuthProvider
+  providerId String? // provider specific UID (null for password provder)
+  credential String? // bcrypt hash - only set for AuthProvider
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerId]) // prevents duplicate OAuth account links
+  @@unique([userId, provider]) // one account per provider per user
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+// Organization
+// Top level tenant. All org scoped data must include orgId in queries
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  // Relations
+  memberships Membership[]
+  invites     Invite[]
+  auditEvents AuditEvent[]
+  sessions    Session[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+// Membership
+model Membership {
+  id        String     @id @default(cuid())
+  role      MemberRole @default(USER)
+  createdAt DateTime   @default(now())
+  updateAt  DateTime   @updatedAt
+
+  userId String
+  orgId  String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId]) // one membership per user per org
+  @@index([orgId, role])
+  @@index([userId])
+  @@map("memberships")
+}
+
+// Session
+model Session {
+  id               String    @id @default(cuid())
+  refreshTokenHash String
+  rotatedAt        DateTime? // set when token is rotated; enables reuse detection
+  expiresAt        DateTime
+  lastSeenAt       DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+
+  // device info
+  ip         String?
+  deviceInfo Json?
+
+  // tenant context
+  orgId  String?
+  userId String
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  irg    Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@index([refreshTokenHash])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// Invite
+// Single-use invitation token sent to a prospective org member.
+// The raw token is sent via email; only the hash is persisted.
+// 
+model Invite {
+  id        String     @id @default(cuid())
+  email     String
+  role      MemberRole @default(USER)
+  tokenHash String     @unique // SHA-256(rawInviteToken)
+  expiresAt DateTime
+  usedAt    DateTime? // set on acceptance; null = still valid
+  createdAt DateTime   @default(now())
+
+  orgId String
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([email]) // look up pending invites for an email address
+  @@index([expiresAt])
+  @@map("invites")
+}
+
+// AuditEvent
+// Append-only log of security-relevant actions. Never updated or deleted.
+// High write volume — flushed in batches from Redis buffer via cleanup worker.
+// 
+model AuditEvent {
+  id        String   @id @default(cuid())
+  action    String // e.g. "auth.login", "session.revoke", "org.role_changed"
+  metadata  Json? // non-PII context: { method, sessionId, oldRole, newRole, … }
+  ip        String?
+  createdAt DateTime @default(now())
+
+  // Both optional: system events may have no userId; cross-org events may have no orgId
+  userId String?
+  orgId  String?
+  user   User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  org    Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([createdAt]) // range queries and exports
+  @@index([action]) // filter by event type
+  @@map("audit_events")
+}
