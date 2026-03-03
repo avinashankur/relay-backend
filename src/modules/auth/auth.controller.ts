@@ -27,11 +27,11 @@ export class AuthController {
 
   // —— POST /auth/login
   // returns 200 { user } + sets HttpOnly access_token + refresh_token cookies
-  login = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
+  // login = async (
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction,
+  // ): Promise<void> => {
     
-  };
+  // };
 }
