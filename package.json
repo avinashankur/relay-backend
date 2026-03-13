@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "build": "tsc && tsc-alias -f -fe .js",
     "prepare": "husky",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write ."
@@ -23,6 +24,7 @@
     "husky": "^9.1.7",
     "prettier": "^3.8.1",
     "prisma": "^7.4.2",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1"

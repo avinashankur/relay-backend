@@ -1,5 +1,6 @@
 import type { PrismaClient, User } from "../../generated/prisma/client.js";
-import { ValidationError } from "../../shared/errors/ValidationError.js";
+// import { ValidationError } from "../../shared/errors/ValidationError.js";
+import { ValidationError } from "@/shared/errors/ValidationError";
 import type { SignupInput } from "./auth.validators";
 import type { PasswordStrategy } from "./strategies/password.strategy.js";
 
