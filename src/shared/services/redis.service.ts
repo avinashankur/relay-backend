@@ -90,7 +90,16 @@ export class RedisService {
   async getJson<T>(key: string): Promise<T | null> {
     const raw = await this.get(key);
     if (raw === null) return null;
-    return JSON.parse(raw) as T;
+    try {
+      return JSON.parse(raw) as T;
+    } catch (error) {
+      logger.error(
+        `Failed to parse JSON value from Redis for key "${key}": ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      throw new Error(`Failed to parse JSON value from Redis for key "${key}"`);
+    }
   }
 
   /**
