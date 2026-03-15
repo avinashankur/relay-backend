@@ -149,32 +149,33 @@ export class RedisService {
    * Get a value with a per-command timeout (ms).
    * Rejects with a timeout error if it takes too long.
    */
-  async getWithTimeout(key: string, timeoutMs: number): Promise<string | null> {
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => {
-      abortController.abort();
-    }, timeoutMs);
+  // ! Some issue with the commandOption
+  // async getWithTimeout(key: string, timeoutMs: number): Promise<string | null> {
+  //   const abortController = new AbortController();
+  //   const timeoutId = setTimeout(() => {
+  //     abortController.abort();
+  //   }, timeoutMs);
 
-    try {
-      // Use AbortSignal-aware command options so the Redis command can be aborted on timeout.
-      return await this.client.get(key, { signal: abortController.signal as AbortSignal });
-    } catch (err: unknown) {
-      // If the command was aborted due to our timeout, translate to a consistent timeout error.
-      if (
-        err instanceof Error &&
-        (err.name === "AbortError" || err.message.includes("aborted"))
-      ) {
-        throw new Error(
-          `Redis GET timed out after ${timeoutMs}ms for key: ${key}`,
-        );
-      }
+  //   try {
+  //     // Use AbortSignal-aware command options so the Redis command can be aborted on timeout.
+  //     return await this.client.get(key, { signal: abortController.signal as AbortSignal });
+  //   } catch (err: unknown) {
+  //     // If the command was aborted due to our timeout, translate to a consistent timeout error.
+  //     if (
+  //       err instanceof Error &&
+  //       (err.name === "AbortError" || err.message.includes("aborted"))
+  //     ) {
+  //       throw new Error(
+  //         `Redis GET timed out after ${timeoutMs}ms for key: ${key}`,
+  //       );
+  //     }
 
-      // Re-throw any real Redis errors
-      throw err;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
+  //     // Re-throw any real Redis errors
+  //     throw err;
+  //   } finally {
+  //     clearTimeout(timeoutId);
+  //   }
+  // }
 
   //  Escape hatch
   /**

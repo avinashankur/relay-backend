@@ -4,7 +4,6 @@ import { logger } from "@/shared/services/logger";
 
 export const redis: RedisClientType = createClient({
   url: env.REDIS_URL,
-  
 
   socket: {
     // Exponential backoff
@@ -25,7 +24,13 @@ export const redis: RedisClientType = createClient({
         return new Error("Redis max retries exceeded");
       }
 
-      const delay = Math.min(retries * 200, 10_000);
+      const base = 200;
+      const max = 10000;
+      let delay = base * Math.pow(2, retries);
+      delay = Math.min(delay, max);
+
+      // Add jitter: randomize 50–100% of the delay
+      delay = delay * (0.5 + Math.random() * 0.5);
       logger.warn({ retries, delayMs: delay }, "Redis: scheduling reconnect");
 
       return delay;
