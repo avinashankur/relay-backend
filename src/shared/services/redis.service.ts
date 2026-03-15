@@ -141,28 +141,29 @@ export class RedisService {
    * Rejects with a timeout error if it takes too long.
    */
   async getWithTimeout(key: string, timeoutMs: number): Promise<string | null> {
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(
-        () =>
-          reject(
-            new Error(
-              `Redis GET timed out after ${timeoutMs}ms for key: ${key}`,
-            ),
-          ),
-        timeoutMs,
-      ),
-    );
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, timeoutMs);
 
     try {
-      return await Promise.race([this.client.get(key), timeoutPromise]);
+      // Use AbortSignal-aware command options so the Redis command can be aborted on timeout.
+      return await this.client.get(key, { signal: abortController.signal as AbortSignal });
     } catch (err: unknown) {
-      // Safe check for our timeout error
-      if (err instanceof Error && err.message.includes("timed out")) {
-        throw err; // re-throw your custom timeout error
+      // If the command was aborted due to our timeout, translate to a consistent timeout error.
+      if (
+        err instanceof Error &&
+        (err.name === "AbortError" || err.message.includes("aborted"))
+      ) {
+        throw new Error(
+          `Redis GET timed out after ${timeoutMs}ms for key: ${key}`,
+        );
       }
 
       // Re-throw any real Redis errors
       throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
