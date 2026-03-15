@@ -17,7 +17,7 @@ const envSchema = z.object({
   // DATABASE_DIRECT_URL: z.url(),
 
   // ─── Redis ────────────────────────────────────────────────────────────────
-  REDIS_URL: z.url(),
+  REDIS_URL: z.url().optional(),
 
   // ─── JWT (RS256) ──────────────────────────────────────────────────────────
   /**
