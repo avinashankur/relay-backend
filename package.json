@@ -6,14 +6,24 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc && tsc-alias -f -fe .js",
-    "prepare": "husky",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --write ."
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check",
+    "format:fix": "prettier --write"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint",
+      "prettier --write"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
@@ -22,6 +32,7 @@
     "@types/pg": "^8.18.0",
     "eslint": "^10.0.2",
     "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "prisma": "^7.4.2",
     "tsc-alias": "^1.8.16",
