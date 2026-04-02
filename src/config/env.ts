@@ -6,7 +6,7 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(5000),
-  // API_BASE_URL: z.string().url(),
+  API_BASE_URL: z.url().default("http://localhost:5000"),
 
   // ─── Database (Neon Postgres) ─────────────────────────────────────────────
   DATABASE_URL: z.url(),
@@ -25,20 +25,20 @@ const envSchema = z.object({
    * In production this is loaded from AWS Secrets Manager at startup;
    * in dev/test you can paste the PEM (newlines replaced with \n) here.
    */
-  // JWT_PRIVATE_KEY: z.string().min(1),
+  JWT_PRIVATE_KEY: z.string().min(1),
   /**
    * PEM-encoded RSA public key used to verify access tokens.
    * Must match JWT_PRIVATE_KEY.
    */
-  // JWT_PUBLIC_KEY: z.string().min(1),
+  JWT_PUBLIC_KEY: z.string().min(1),
   /** Access token lifetime in seconds. Default: 900 (15 min). */
-  // JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   /** Refresh token lifetime in seconds. Default: 2592000 (30 days). */
-  // JWT_REFRESH_TTL_SECONDS: z.coerce
-  //   .number()
-  //   .int()
-  //   .positive()
-  //   .default(2_592_000),
+  JWT_REFRESH_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(2_592_000),
 
   // ─── OAuth ────────────────────────────────────────────────────────────────
   // GOOGLE_CLIENT_ID: z.string().min(1),
@@ -50,10 +50,8 @@ const envSchema = z.object({
   // GITHUB_CALLBACK_URL: z.string().url(),
 
   // ─── Email (Resend) ───────────────────────────────────────────────────────
-  // RESEND_API_KEY: z.string().min(1),
-  // EMAIL_FROM: z
-  //   .email()
-  //   .default("IdentityCore <noreply@identitycore.dev>"),
+  RESEND_API_KEY: z.string().min(1),
+  EMAIL_FROM: z.email().default("IdentityCore <noreply@identitycore.dev>"),
 
   // ─── AWS ──────────────────────────────────────────────────────────────────
   // AWS_REGION: z.string().min(1).default("us-east-1"),

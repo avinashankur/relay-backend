@@ -1,6 +1,9 @@
+import { URL } from "url";
 import { createClient, type RedisClientType } from "redis";
 import { env } from "./env";
-import { logger } from "@/shared/services/logger";
+import { logger } from "@/config/logger";
+
+const redisUrl = new URL(env.REDIS_URL!);
 
 export const redis: RedisClientType = createClient({
   url: env.REDIS_URL,
@@ -40,7 +43,7 @@ export const redis: RedisClientType = createClient({
 
   /*
     When the connection is down, node-redis can queue your commands (SET, GET, etc.) and replay them when it reconnects
-    false = yes, please queue them (default and usually what you want)
+    false = yes, please queue them
   */
   disableOfflineQueue: false,
 });
@@ -50,6 +53,13 @@ redis.on("ready", () => logger.info("Redis ready"));
 redis.on("error", (err: Error) => logger.error({ err }, "Redis client error"));
 redis.on("end", () => logger.info("Redis connection ended"));
 redis.on("reconnection", () => logger.warn("Redis reconnecting"));
+
+export const redisConnection = {
+  host: redisUrl.hostname, // localhost
+  port: Number(redisUrl.port), // 6379
+  password: redisUrl.password || undefined,
+  tls: env.REDIS_URL!.startsWith("rediss://") ? {} : undefined,
+};
 
 /**
  * Explicitly connect to Redis.

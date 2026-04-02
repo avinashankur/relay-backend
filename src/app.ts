@@ -5,7 +5,7 @@ import express, {
 } from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
-import { logger } from "./shared/services/logger";
+import { logger } from "./config/logger";
 import cookieParser from "cookie-parser";
 import { AuthService } from "./modules/auth/auth.service";
 import { PasswordStrategy } from "./modules/auth/strategies/password.strategy";
@@ -27,7 +27,7 @@ export function createApp(): Application {
 
   // Dependency wiring ————————————————————————————————————————————
   const authService = new AuthService(prisma, new PasswordStrategy());
-  
+
   // Routes here ——————————————————————————————————————————————————
   // Health Endpoints
 
@@ -54,7 +54,6 @@ export function createApp(): Application {
       error: { code: "NOT_FOUND", message: "Route not found" },
     });
   });
-
 
   return app;
 }

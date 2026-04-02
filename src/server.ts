@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { createApp } from "./app";
 import { env } from "./config/env";
-import { logger } from "./shared/services/logger";
+import { logger } from "./config/logger";
 
 const PORT = Number(env.PORT);
 const app = createApp();
