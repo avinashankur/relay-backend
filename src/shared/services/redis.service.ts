@@ -1,5 +1,5 @@
 import { type RedisClientType } from "redis";
-import { logger } from "./logger";
+import { logger } from "@/config/logger";
 
 export class RedisService {
   constructor(private readonly client: RedisClientType) {}
@@ -116,6 +116,27 @@ export class RedisService {
    */
   async rPush(key: string, ...values: string[]): Promise<number> {
     return this.client.rPush(key, values);
+  }
+
+  /**
+   * Atomically pop up to count elements from the head of a list (LMPOP).
+   * Returns null if the list is empty or does not exist.
+   */
+  async lmPop(
+    key: string,
+    count: number,
+  ): Promise<{ key: string; elements: string[] } | null> {
+    // node-redis signature: lmPop(count, key | key[], direction, options?) -> not valid now. dont use this way. the modern client automatically handles the count of keys for you when you pass a string or array.
+    const result = (await this.client.lmPop(key, "LEFT", { COUNT: count })) as
+      | [string, string[]]
+      | null;
+    if (!result) return null;
+
+    // Earlier node-redis versions returned { key, elements } directly, but newer versions return [key, elements] tuple. Normalize to an object for consistency.
+    return {
+      key: result[0],
+      elements: result[1],
+    };
   }
 
   /**
