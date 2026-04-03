@@ -25,6 +25,8 @@ async function processEmailJob(job: Job): Promise<void> {
   switch (job.name) {
     case EmailJobName.SendVerification:
       await sendVerification(job.data as SendVerificationJobData);
+      break;
+
     case EmailJobName.SendMagicLink:
       await sendMagicLink(job.data as SendMagicLinkJobData);
       break;

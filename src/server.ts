@@ -2,6 +2,8 @@ import "dotenv/config";
 import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
+import { connectRedis } from "./config/redis";
+import { shutdownEmailWorker } from "./workers/email/email.worker";
 
 const PORT = Number(env.PORT);
 const app = createApp();
@@ -23,6 +25,11 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
+// Connect to Redis
+connectRedis().catch((err) => {
+  logger.error({ err }, "Failed to connect to Redis");
+});
+
 // ── Connect to Postgres via Prisma ────────────────────────────────────────
 const server = app.listen(PORT, () => {
   logger.info(
@@ -37,6 +44,7 @@ async function shutdown(signal: string): Promise<void> {
 
   server.close(async () => {
     logger.info("HTTP server closed");
+    await shutdownEmailWorker();
     // await prisma.$disconnect();
     // await redis.quit();
     logger.info("Shutdown complete");

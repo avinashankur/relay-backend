@@ -11,11 +11,43 @@ import { AuthService } from "./modules/auth/auth.service";
 import { PasswordStrategy } from "./modules/auth/strategies/password.strategy";
 import { prisma } from "./config/prisma";
 import { createAuthRouter } from "./modules/auth/auth.router";
+import { AuditService } from "./shared/services/audit.service";
+import { SessionService } from "./modules/sessions/sessions.service";
+import { Queue } from "bullmq";
+import { RedisService } from "./shared/services/redis.service";
+import { redis, redisConnection } from "./config/redis";
+import { CryptoService } from "./shared/services/crypto.service";
+import type { EmailJobData } from "./workers/email/email.queue";
+import { EmailService } from "./shared/services/email.service";
+import { failure, success } from "./shared/utils/response";
+import { errorHandler } from "./shared/middleware/error-handler";
+
+const AUDIT_FLUSH_INTERVAL_MS = 30_000;
+
+async function withTimeout<T>(
+  label: string,
+  promise: Promise<T>,
+  ms: number,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} check timed out after ${ms}ms`));
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 export function createApp(): Application {
   const app = express();
 
-  // Security headers ————————————————————————————————————————————
+  // Security headers
   app.use(helmet({}));
 
   // Request parsing
@@ -25,22 +57,60 @@ export function createApp(): Application {
   app.use(pinoHttp({ logger }));
   app.use(cookieParser());
 
-  // Dependency wiring ————————————————————————————————————————————
-  const authService = new AuthService(prisma, new PasswordStrategy());
+  // Dependency wiring
+  const redisService = new RedisService(redis);
+  const cryptoService = new CryptoService();
+  const emailQueue = new Queue<EmailJobData>("email", {
+    connection: redisConnection,
+  });
+  const emailService = new EmailService(emailQueue);
+  const auditService = new AuditService(prisma, redisService);
 
-  // Routes here ——————————————————————————————————————————————————
+  // Drain Redis-buffered audit events to Postgres on a fixed cadence.
+  const auditFlushInterval = setInterval(() => {
+    auditService
+      .flush()
+      .catch((err) => logger.error({ err }, "Periodic audit flush failed"));
+  }, AUDIT_FLUSH_INTERVAL_MS);
+  auditFlushInterval.unref();
+
+  const sessionService = new SessionService(
+    prisma,
+    auditService,
+    cryptoService,
+    emailService,
+    redisService,
+  );
+  const passwordStrategy = new PasswordStrategy();
+
+  const authService = new AuthService(
+    prisma,
+    passwordStrategy,
+    auditService,
+    sessionService,
+    cryptoService,
+    redisService,
+    emailService,
+  );
+
+  // Routes here
   // Health Endpoints
-
   app.get("/health", (_req, res) => {
-    res.status(200).json({ status: "ok" });
+    res.status(200).json(success({ status: "ok" }));
   });
 
-  app.get("/health/ready", (_req, res) => {
+  app.get("/health/ready", async (_req, res) => {
     try {
       // check prisma and redis health
+      await withTimeout("prisma", prisma.$queryRaw`SELECT 1`, 3000);
+      await withTimeout("redis", redis.ping(), 2000);
+
+      return res.status(200).json(success({ status: "ready" }));
     } catch (error) {
       logger.error({ error }, "Readiness check failed");
-      res.status(503).json({ status: "unavailable" });
+      return res
+        .status(503)
+        .json(failure("SERVICE_UNAVAILABLE", "Service is not ready"));
     }
   });
 
@@ -49,11 +119,10 @@ export function createApp(): Application {
 
   // 404 catch-all
   app.use((_req: Request, res: Response) => {
-    res.status(404).json({
-      success: false,
-      error: { code: "NOT_FOUND", message: "Route not found" },
-    });
+    res.status(404).json(failure("NOT_FOUND", "Route not found"));
   });
+
+  app.use(errorHandler);
 
   return app;
 }

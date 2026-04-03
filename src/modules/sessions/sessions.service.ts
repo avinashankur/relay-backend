@@ -3,6 +3,7 @@ import { AuthError } from "@/shared/errors/AuthError";
 import { ForbiddenError } from "@/shared/errors/ForbiddenError";
 import { AuditService } from "@/shared/services/audit.service";
 import { CryptoService } from "@/shared/services/crypto.service";
+import { EmailService } from "@/shared/services/email.service";
 import { JwtService } from "@/shared/services/jwt.service";
 import { RedisService } from "@/shared/services/redis.service";
 
@@ -32,10 +33,11 @@ export class SessionService {
   private readonly jwtService: JwtService;
 
   constructor(
-    private readonly cryptoService: CryptoService,
     private readonly prisma: PrismaClient,
-    private readonly redisService: RedisService,
     private readonly auditService: AuditService,
+    private readonly cryptoService: CryptoService,
+    private readonly emailService: EmailService,
+    private readonly redisService: RedisService,
   ) {
     this.jwtService = new JwtService();
   }
@@ -106,7 +108,13 @@ export class SessionService {
           metadata: { sessionId: session.id },
         });
 
-        // Todo: send security alert email to user
+        await this.emailService.sendSecurityAlert({
+          userId: session.userId,
+          email: session.user.email,
+          alertType: "token_reuse",
+          userAgent,
+          ip,
+        });
       }
       throw new AuthError(
         "TOKEN_REUSE_DETECTED",
