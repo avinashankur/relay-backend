@@ -9,7 +9,7 @@ interface PasswordResetEmailProps {
 
 export function PasswordResetEmail({ resetUrl }: PasswordResetEmailProps) {
   return (
-    <Layout previewText="Reset your IdentityCore password">
+    <Layout previewText="Reset your Relay password">
       <Text className="text-xl font-bold tracking-tight text-zinc-900 m-0 mb-3">
         Reset your password
       </Text>

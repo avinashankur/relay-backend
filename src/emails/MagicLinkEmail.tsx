@@ -19,7 +19,7 @@ export function MagicLinkEmail({ magicLinkUrl }: MagicLinkEmailProps) {
       </Text>
 
       <Section className="mb-7">
-        <Button href={magicLinkUrl}>Sign in to IdentityCore</Button>
+        <Button href={magicLinkUrl}>Sign in to Relay</Button>
       </Section>
 
       <Text className="text-xs text-zinc-500 leading-relaxed mt-0 mb-4">

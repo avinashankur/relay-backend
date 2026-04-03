@@ -4,8 +4,8 @@ import { AuthError } from "../errors/AuthError";
 
 // constants
 const ALGORITHM = "RS256"; // not symmetric like HS256
-const ISSUER = "identitycore";
-const AUDIENCE = "identitycore:api";
+const ISSUER = "relay";
+const AUDIENCE = "relay:api";
 const ACCESS_TTL = "15m";
 
 export interface AccessTokenPayload extends JWTPayload {

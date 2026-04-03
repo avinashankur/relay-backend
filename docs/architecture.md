@@ -1,4 +1,4 @@
-identitycore/
+relay/
 │
 ├── .github/
 │ ├── workflows/

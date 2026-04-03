@@ -1242,9 +1242,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: identitycore
+      POSTGRES_USER: relay
       POSTGRES_PASSWORD: dev_password
-      POSTGRES_DB: identitycore_dev
+      POSTGRES_DB: relay_dev
     ports:
       - "5432:5432"
     volumes:
@@ -1262,7 +1262,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://identitycore:dev_password@postgres:5432/identitycore_dev
+      DATABASE_URL: postgresql://relay:dev_password@postgres:5432/relay_dev
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
     depends_on:
@@ -1275,7 +1275,7 @@ services:
     build: .
     command: npm run worker
     environment:
-      DATABASE_URL: postgresql://identitycore:dev_password@postgres:5432/identitycore_dev
+      DATABASE_URL: postgresql://relay:dev_password@postgres:5432/relay_dev
       REDIS_URL: redis://redis:6379
     depends_on:
       - postgres
@@ -1291,7 +1291,7 @@ volumes:
 ```bash
 # Clone and setup
 git clone <repo>
-cd identitycore
+cd relay
 cp .env.example .env
 
 # Start services
@@ -1411,7 +1411,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build Docker image
-        run: docker build -t identitycore:${{ github.sha }} .
+        run: docker build -t relay:${{ github.sha }} .
       - name: Push to ECR (if main branch)
         if: github.ref == 'refs/heads/main'
 ```
@@ -1490,7 +1490,7 @@ jobs:
 ### 1. README.md (Root)
 
 ````markdown
-# IdentityCore - Enterprise Identity Platform
+# Relay - Enterprise Identity Platform
 
 ## Overview
 

@@ -51,7 +51,7 @@ const envSchema = z.object({
 
   // ─── Email (Resend) ───────────────────────────────────────────────────────
   RESEND_API_KEY: z.string().min(1),
-  EMAIL_FROM: z.string().default("IdentityCore <noreply@identitycore.dev>"),
+  EMAIL_FROM: z.string().default("Relay <noreply@relay.dev>"),
 
   // ─── AWS ──────────────────────────────────────────────────────────────────
   // AWS_REGION: z.string().min(1).default("us-east-1"),
@@ -73,7 +73,7 @@ const envSchema = z.object({
 
   // ─── Cookie ───────────────────────────────────────────────────────────────
   /**
-   * Domain for Set-Cookie headers (e.g. ".identitycore.dev").
+   * Domain for Set-Cookie headers (e.g. ".relay.dev").
    * Leave unset in local dev to default to localhost.
    */
   COOKIE_DOMAIN: z.string().optional(),
@@ -116,7 +116,7 @@ function parseEnv(): Env {
       .join("\n");
 
     console.error(
-      `\n[IdentityCore] ❌ Invalid environment variables:\n${formatted}\n`,
+      `\n[Relay] ❌ Invalid environment variables:\n${formatted}\n`,
     );
     process.exit(1);
   }

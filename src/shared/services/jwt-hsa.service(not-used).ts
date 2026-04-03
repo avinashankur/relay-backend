@@ -11,8 +11,8 @@ interface AccessTokenPayload extends JWTPayload {
 
 const ALGORITHM = "HS256";
 const ACCESS_TTL = "15m";
-const ISSUER = "identitycore";
-const AUDIENCE = "identitycore:api";
+const ISSUER = "relay";
+const AUDIENCE = "relay:api";
 
 // Use this for simple algorithm - HS256. This doesnt have private and public key and the keys are not stored as multiline in the env file
 export class JwtService {

@@ -9,9 +9,7 @@ export function OtpEmail({ code }: OtpEmailProps) {
   const formattedCode = `${code.slice(0, 3)} ${code.slice(3)}`;
 
   return (
-    <Layout
-      previewText={`${formattedCode} is your IdentityCore verification code`}
-    >
+    <Layout previewText={`${formattedCode} is your Relay verification code`}>
       <Text className="text-xl font-bold tracking-tight text-zinc-900 m-0 mb-3">
         Your verification code
       </Text>

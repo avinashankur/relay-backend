@@ -29,7 +29,7 @@ export function Layout({ previewText, children }: LayoutProps) {
                 className="text-xl font-bold tracking-tight text-zinc-900 m-0"
                 style={wordmarkFont}
               >
-                Identity Core
+                Relay
               </Text>
             </Section>
             {/* Content Section */}
@@ -41,10 +41,10 @@ export function Layout({ previewText, children }: LayoutProps) {
             <Section className="text-center">
               <Text className="text-xs text-zinc-400 leading-relaxed m-0">
                 You're receiving this email because an action was taken on your
-                IdentityCore account.
+                Relay account.
               </Text>
               <Text className="text-xs text-zinc-400 leading-relaxed mt-1 mb-0">
-                © {new Date().getFullYear()} IdentityCore. All rights reserved.
+                © {new Date().getFullYear()} Relay. All rights reserved.
               </Text>
             </Section>
           </Container>
