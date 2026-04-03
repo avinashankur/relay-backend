@@ -51,7 +51,7 @@ const envSchema = z.object({
 
   // ─── Email (Resend) ───────────────────────────────────────────────────────
   RESEND_API_KEY: z.string().min(1),
-  EMAIL_FROM: z.email().default("IdentityCore <noreply@identitycore.dev>"),
+  EMAIL_FROM: z.string().default("IdentityCore <noreply@identitycore.dev>"),
 
   // ─── AWS ──────────────────────────────────────────────────────────────────
   // AWS_REGION: z.string().min(1).default("us-east-1"),
