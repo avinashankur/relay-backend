@@ -21,6 +21,7 @@ import type { EmailJobData } from "./workers/email/email.queue";
 import { EmailService } from "./shared/services/email.service";
 import { failure, success } from "./shared/utils/response";
 import { errorHandler } from "./shared/middleware/error-handler";
+import { OtpStrategy } from "./modules/auth/strategies/otp.strategy";
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -58,8 +59,10 @@ export function createApp(): Application {
   app.use(cookieParser());
 
   // Dependency wiring
+  const passwordStrategy = new PasswordStrategy();
   const redisService = new RedisService(redis);
   const cryptoService = new CryptoService();
+  const otpStrategy = new OtpStrategy(cryptoService, redisService);
   const emailQueue = new Queue<EmailJobData>("email", {
     connection: redisConnection,
   });
@@ -81,11 +84,11 @@ export function createApp(): Application {
     emailService,
     redisService,
   );
-  const passwordStrategy = new PasswordStrategy();
 
   const authService = new AuthService(
     prisma,
     passwordStrategy,
+    otpStrategy,
     auditService,
     sessionService,
     cryptoService,
@@ -115,7 +118,10 @@ export function createApp(): Application {
   });
 
   // Auth Endpoint
-  app.use("/api/v1/auth", createAuthRouter(authService));
+  app.use(
+    "/api/v1/auth",
+    createAuthRouter(authService, sessionService, redisService),
+  );
 
   // 404 catch-all
   app.use((_req: Request, res: Response) => {

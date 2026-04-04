@@ -24,8 +24,9 @@ export type AuthErrorCode =
   | "TOKEN_REUSE_DETECTED" // refresh token presented after already being rotated
   | "MISSING_REFRESH_TOKEN" // refresh endpoint called with no cookie
   | "MISSING_ACCESS_TOKEN" // protected route hit with no JWT cookie
+  | "MISSING_TOKENS" // both JWT and refresh token missing, e.g. user cleared cookies
   | "SESSION_REVOKED" // session explicitly revoked by user or admin
   | "ACCOUNT_DELETED" // user soft-deleted
   | "ACCOUNT_SUSPENDED" // user suspended by admin
-  | "OTP_LOCKED" // max OTP attempts exceeded; requires re-request
+  | "MAX_OTP_ATTEMPTS" // max OTP attempts exceeded; requires re-request
   | "OAUTH_STATE_MISMATCH"; // OAuth state param does not match stored value
