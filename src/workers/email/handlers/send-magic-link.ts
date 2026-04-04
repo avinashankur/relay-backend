@@ -7,9 +7,9 @@ import type { SendMagicLinkJobData } from "../email.queue";
 const resend = new Resend(env.RESEND_API_KEY);
 
 export async function sendMagicLink(data: SendMagicLinkJobData): Promise<void> {
-  const { email, token, redirectUrl } = data;
+  const { email, token } = data;
 
-  const magicLinkUrl = `${env.API_BASE_URL}/auth/magic-link/callback?token=${token}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+  const magicLinkUrl = `${env.API_BASE_URL}/api/v1/auth/magic-link/callback?token=${token}`;
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,

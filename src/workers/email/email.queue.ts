@@ -18,7 +18,6 @@ export interface SendVerificationJobData {
 export interface SendMagicLinkJobData {
   email: string;
   token: string;
-  redirectUrl: string;
 }
 
 export interface SendOtpJobData {

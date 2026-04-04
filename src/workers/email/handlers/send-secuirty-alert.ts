@@ -17,7 +17,7 @@ export async function sendSecurityAlert(
 ): Promise<void> {
   const { userId, email, ip, userAgent, alertType } = data;
 
-  const revokeUrl = `${env.API_BASE_URL}/sessions`;
+  const revokeUrl = `${env.API_BASE_URL}/api/v1/sessions`;
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,
