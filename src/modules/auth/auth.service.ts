@@ -1,13 +1,13 @@
-import { PrismaClient, type User } from "../../generated/prisma/client.js";
+import type { PrismaClient, User } from "../../generated/prisma/client.js";
 import { ValidationError } from "@/shared/errors/ValidationError";
-import { PasswordStrategy } from "./strategies/password.strategy.js";
-import { AuditService } from "@/shared/services/audit.service.js";
+import type { PasswordStrategy } from "./strategies/password.strategy.js";
+import type { AuditService } from "@/shared/services/audit.service.js";
 import { AuthError } from "@/shared/errors/AuthError.js";
-import { SessionService } from "../sessions/sessions.service.js";
-import { CryptoService } from "@/shared/services/crypto.service.js";
-import { RedisService } from "@/shared/services/redis.service.js";
-import { EmailService } from "@/shared/services/email.service.js";
-import { OtpStrategy } from "./strategies/otp.strategy.js";
+import type { SessionService } from "../sessions/sessions.service.js";
+import type { CryptoService } from "@/shared/services/crypto.service.js";
+import type { RedisService } from "@/shared/services/redis.service.js";
+import type { EmailService } from "@/shared/services/email.service.js";
+import type { OtpStrategy } from "./strategies/otp.strategy.js";
 import type { LoginInput, SignupInput } from "./auth.validators";
 
 export interface AuthTokens {
