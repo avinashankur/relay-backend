@@ -3,13 +3,18 @@ import * as React from "react";
 import { Layout } from "./components/Layout";
 import { Button } from "./components/Button";
 
-type AlertType = "token_reuse" | "suspicious_login" | "password_changed";
+type AlertType =
+  | "token_reuse"
+  | "suspicious_login"
+  | "password_changed"
+  | "account_deletion";
 
 interface SecurityAlertEmailProps {
   alertType: AlertType;
   ip?: string;
   userAgent?: string;
   revokeUrl?: string;
+  scheduledAt?: Date;
 }
 
 const ALERT_COPY: Record<
@@ -31,6 +36,11 @@ const ALERT_COPY: Record<
     body: "Your account password was recently changed. All existing sessions have been revoked. If you made this change, no action is needed. If you did not, secure your account immediately.",
     severity: "medium",
   },
+  account_deletion: {
+    subject: "Your account is scheduled for deletion",
+    body: "Your account has been scheduled for permanent deletion. All your sessions have been revoked. If you did not request this, please contact support immediately to recover your account.",
+    severity: "high",
+  },
 };
 
 export function SecurityAlertEmail({
@@ -38,6 +48,7 @@ export function SecurityAlertEmail({
   ip,
   userAgent,
   revokeUrl,
+  scheduledAt,
 }: SecurityAlertEmailProps) {
   const copy = ALERT_COPY[alertType];
   const isHigh = copy.severity === "high";
@@ -62,6 +73,33 @@ export function SecurityAlertEmail({
       <Text className="text-sm text-zinc-600 leading-relaxed mt-0 mb-6">
         {copy.body}
       </Text>
+
+      {/* Scheduled deletion date */}
+      {alertType === "account_deletion" && scheduledAt && (
+        <Section
+          className="bg-red-50 rounded-lg p-4 mb-6"
+          style={{ backgroundColor: "#fef2f2" }}
+        >
+          <Text className="text-xs font-semibold uppercase tracking-widest text-zinc-400 m-0 mb-2">
+            Permanent deletion date
+          </Text>
+          <Text
+            className="text-sm font-semibold text-zinc-900 m-0"
+            style={{ color: "#dc2626" }}
+          >
+            {scheduledAt.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </Text>
+          <Text className="text-xs text-zinc-500 leading-relaxed m-0 mt-2">
+            After this date, all your data will be permanently removed and
+            cannot be recovered.
+          </Text>
+        </Section>
+      )}
 
       {/* Device details */}
       {(ip || userAgent) && (
@@ -110,11 +148,13 @@ export function SecurityAlertEmail({
         </Section>
       )}
 
-      <Text className="text-xs text-zinc-500 leading-relaxed m-0">
-        If you recognise this activity, no action is needed. If you believe your
-        account has been compromised, change your password immediately and
-        contact support.
-      </Text>
+      {alertType !== "account_deletion" && (
+        <Text className="text-xs text-zinc-500 leading-relaxed m-0">
+          If you recognise this activity, no action is needed. If you believe
+          your account has been compromised, change your password immediately
+          and contact support.
+        </Text>
+      )}
     </Layout>
   );
 }

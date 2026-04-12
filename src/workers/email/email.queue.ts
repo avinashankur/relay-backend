@@ -36,7 +36,12 @@ export interface SendSecurityAlertJobData {
   email: string;
   ip?: string;
   userAgent?: string;
-  alertType: "token_reuse" | "suspicious_login" | "password_changed";
+  scheduledAt?: Date; // for account deletion
+  alertType:
+    | "token_reuse"
+    | "suspicious_login"
+    | "password_changed"
+    | "account_deletion";
 }
 
 export type EmailJobData =

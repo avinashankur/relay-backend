@@ -17,7 +17,7 @@ import { sendVerification } from "./handlers/send-verification";
 import { sendMagicLink } from "./handlers/send-magic-link";
 import { sendOtp } from "./handlers/send-otp";
 import { sendPasswordReset } from "./handlers/send-password-reset";
-import { sendSecurityAlert } from "./handlers/send-secuirty-alert";
+import { sendSecurityAlert } from "./handlers/send-security-alert";
 
 async function processEmailJob(job: Job): Promise<void> {
   logger.info({ jobId: job.id, jobName: job.name }, "Processing email job");

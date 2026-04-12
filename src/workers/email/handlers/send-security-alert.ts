@@ -10,12 +10,13 @@ const SUBJECTS: Record<SendSecurityAlertJobData["alertType"], string> = {
   token_reuse: "Security alert: suspicious session activity detected",
   suspicious_login: "Security alert: new sign-in to your account",
   password_changed: "Your password has been changed",
+  account_deletion: "Your account is scheduled for deletion",
 };
 
 export async function sendSecurityAlert(
   data: SendSecurityAlertJobData,
 ): Promise<void> {
-  const { userId, email, ip, userAgent, alertType } = data;
+  const { userId, email, ip, userAgent, alertType, scheduledAt } = data;
 
   const revokeUrl = `${env.API_BASE_URL}/api/v1/sessions`;
 
@@ -23,7 +24,13 @@ export async function sendSecurityAlert(
     from: env.EMAIL_FROM,
     to: email,
     subject: SUBJECTS[alertType],
-    react: SecurityAlertEmail({ alertType, ip, userAgent, revokeUrl }),
+    react: SecurityAlertEmail({
+      alertType,
+      ip,
+      userAgent,
+      revokeUrl,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+    }),
   });
 
   if (error) {
