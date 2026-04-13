@@ -6,12 +6,8 @@ import { AuthError } from "../errors/AuthError";
  * Must be used after parseToken in the middleware chain.
  */
 
-interface AuthenticatedRequest extends Request {
-  user?: unknown;
-}
-
 export function requireAuth(
-  req: AuthenticatedRequest,
+  req: Request,
   _res: Response,
   next: NextFunction,
 ): void {

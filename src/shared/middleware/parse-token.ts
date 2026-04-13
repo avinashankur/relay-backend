@@ -1,18 +1,9 @@
-// src/shared/middleware/parse-token.ts
-
 import type { Request, Response, NextFunction } from "express";
 import { JwtService } from "@/shared/services/jwt.service";
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
-
 export function parseToken(jwtService: JwtService) {
   return async (
-    req: AuthenticatedRequest,
+    req: Request,
     _res: Response,
     next: NextFunction,
   ): Promise<void> => {
