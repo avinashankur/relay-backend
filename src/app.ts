@@ -22,6 +22,8 @@ import { EmailService } from "./shared/services/email.service";
 import { failure, success } from "./shared/utils/response";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { OtpStrategy } from "./modules/auth/strategies/otp.strategy";
+import { createUserRouter } from "./modules/users/user.router";
+import { UserService } from "./modules/users/users.service";
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -85,6 +87,13 @@ export function createApp(): Application {
     redisService,
   );
 
+  const userService = new UserService(
+    prisma,
+    auditService,
+    sessionService,
+    emailService,
+  );
+
   const authService = new AuthService(
     prisma,
     passwordStrategy,
@@ -122,6 +131,9 @@ export function createApp(): Application {
     "/api/v1/auth",
     createAuthRouter(authService, sessionService, redisService),
   );
+
+  // User Endpoint
+  app.use("/api/v1/user", createUserRouter(userService));
 
   // 404 catch-all
   app.use((_req: Request, res: Response) => {
