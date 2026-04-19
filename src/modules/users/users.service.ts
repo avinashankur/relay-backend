@@ -120,7 +120,7 @@ export class UserService {
 
     if (user.role === "ADMIN") {
       throw new ForbiddenError(
-        "ADMIN_SELF_DELETE_FORBIDDEN",
+        "SELF_ACTION_FORBIDDEN",
         "Admin accounts cannot be deleted",
       );
     }

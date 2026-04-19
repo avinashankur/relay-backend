@@ -17,5 +17,9 @@ export class ForbiddenError extends AppError {
 export type ForbiddenErrorCode =
   | "INSUFFICIENT_ROLE" // role check failed (requireRole middleware)
   | "RESOURCE_FORBIDDEN" // authenticated user does not own the resource
+  | "RESOURCE_LOCKED"
   | "CSRF_INVALID" // double-submit CSRF token mismatch
-  | "ADMIN_SELF_DELETE_FORBIDDEN"; // admin can not delete self account
+  | "ACCOUNT_DELETED"
+  | "ACCOUNT_SUSPENDED"
+  | "SELF_ACTION_FORBIDDEN"
+  | "ALREADY_SUSPENDED";

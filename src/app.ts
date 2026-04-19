@@ -24,6 +24,7 @@ import { errorHandler } from "./shared/middleware/error-handler";
 import { OtpStrategy } from "./modules/auth/strategies/otp.strategy";
 import { createUserRouter } from "./modules/users/user.router";
 import { UserService } from "./modules/users/users.service";
+import { createAdminRouter } from "./modules/admin/admin.router";
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -134,6 +135,12 @@ export function createApp(): Application {
 
   // User Endpoint
   app.use("/api/v1/user", createUserRouter(userService));
+
+  // Admin Endpoint (requires auth + admin role)
+  app.use(
+    "/api/v1/admin",
+    createAdminRouter(prisma, sessionService, auditService),
+  );
 
   // 404 catch-all
   app.use((_req: Request, res: Response) => {

@@ -1,3 +1,5 @@
+import type { UserRole } from "@/generated/prisma/enums";
+
 export {};
 
 declare global {
@@ -5,7 +7,7 @@ declare global {
     interface Request {
       user?: {
         id: string;
-        role: string;
+        role: UserRole;
       };
     }
   }

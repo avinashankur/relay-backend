@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { JwtService } from "@/shared/services/jwt.service";
+import type { UserRole } from "@/generated/prisma/enums";
 
 export function parseToken(jwtService: JwtService) {
   return async (
@@ -17,7 +18,7 @@ export function parseToken(jwtService: JwtService) {
       const payload = await jwtService.verify(token);
       req.user = {
         id: payload.sub,
-        role: payload.role,
+        role: payload.role as UserRole,
       };
     } catch {
       // Invalid/expired token — don't throw, just don't populate req.user
