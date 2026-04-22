@@ -19,15 +19,12 @@ Relay is currently an early-stage TypeScript identity/auth backend built on Expr
 
 ## Current-State Gaps
 
-- Only `POST /api/v1/auth/signup` is currently routed; the broader auth API surface is not exposed yet.
-- `AuthService` contains additional logic such as login, but routing and controller coverage do not match the intended module scope.
-- `package.json` has no `typecheck`, unit test, integration test, or CI-oriented scripts yet.
-- `docs/architecture.md` and `docs/relay_build_prompt.md` mostly describe an aspirational future-state platform, not the current implementation boundary.
+- The `AuthService`, `SessionService`, `UserService`, and `AdminService` have implementation and test coverage.
+- Several core endpoints are missing explicit controller/routing wire-ups, particularly in `auth` (login, logout, refresh, reset) and other domain modules (only `/auth/signup` is wired).
+- `package.json` has `test` scripts but lacks a fully-featured CI pipeline (no `.github/workflows/`).
 - Graceful shutdown is incomplete in `src/server.ts`; Prisma and Redis disconnect paths are commented out.
 - API and worker runtime boundaries are not cleanly separated into dedicated entrypoints/process contracts yet.
-- No `.github/workflows/` CI pipeline exists in the repo even though the docs assume one.
-- Email and worker coverage exists, but production-grade retry, dead-letter, and operational guarantees are not documented or validated.
-- The repo includes built output under `dist/`, which can confuse source-of-truth planning when stale branding or generated artifacts drift from `src/`.
+- Email workers exist but lack production-grade retry, dead-letter, and operational configurations in BullMQ.
 
 ## Delivery Backlog By Workstream
 
@@ -35,8 +32,8 @@ Relay is currently an early-stage TypeScript identity/auth backend built on Expr
 
 Goal: remove stale product identity and make the repository’s source of truth consistent.
 
-- [ ] `P0` `Done` Adopt `Relay` as the canonical project/product name and apply it consistently across source, docs, email copy, env defaults, and operational text.
-- [ ] `P0` `Done` Rename stale legacy references in `src/config/env.ts`, email templates, layout/footer copy, validation error banners, and any auth-facing strings that surface externally.
+- [x] `P0` `Done` Adopt `Relay` as the canonical project/product name and apply it consistently across source, docs, email copy, env defaults, and operational text.
+- [x] `P0` `Done` Rename stale legacy references in `src/config/env.ts`, email templates, layout/footer copy, validation error banners, and any auth-facing strings that surface externally.
 - [ ] `P0` `Not started` Update JWT issuer/audience identifiers in the active JWT service so tokens do not continue to carry legacy product naming.
 - [ ] `P1` `Not started` Rewrite docs and prompts that still use the old product name so planning documents stop diverging from the actual repo identity.
 - [ ] `P1` `Not started` Decide whether `dist/` should remain committed, be regenerated only in CI, or be excluded from planning and review workflows; document that choice and enforce it consistently.
@@ -80,8 +77,8 @@ Goal: make outbound email flows production-grade and operationally reliable.
 
 Goal: make the repo safe to change by adding executable verification around critical auth flows.
 
-- [ ] `P0` `Not started` Add a `typecheck` script and baseline test scripts to `package.json` so the project has first-class verification commands.
-- [ ] `P0` `Not started` Introduce unit tests for `AuthService`, `SessionService`, and security-sensitive shared services with mocked external dependencies.
+- [x] `P0` `Done` Add a `typecheck` script and baseline test scripts to `package.json` so the project has first-class verification commands.
+- [x] `P0` `Done` Introduce unit tests for `AuthService`, `SessionService`, `UserService`, `AdminService` and security-sensitive shared services with mocked external dependencies.
 - [ ] `P0` `Not started` Add integration tests for signup, login, refresh, and email verification using real Prisma/Redis-backed flows where practical.
 - [ ] `P0` `Not started` Cover the highest-risk cases first: token rotation, token reuse, duplicate signup, invalid credentials, and verification token expiry.
 - [ ] `P1` `Not started` Add a minimum CI workflow that runs lint, typecheck, tests, and build on pull requests.
