@@ -5,7 +5,6 @@ import { SessionService } from "../sessions/sessions.service";
 import { RedisService } from "@/shared/services/redis.service";
 import { createRateLimit } from "@/shared/middleware/rate-limit";
 import { parseToken } from "@/shared/middleware/parse-token";
-import { requireAuth } from "@/shared/middleware/require-auth";
 import { JwtService } from "@/shared/services/jwt.service";
 
 export function createAuthRouter(
@@ -36,7 +35,7 @@ export function createAuthRouter(
   router.post("/login", loginLimit, ctrl.login);
 
   // POST /auth/logout
-  router.post("/logout", tokenParser, requireAuth, ctrl.logout);
+  router.post("/logout", tokenParser, ctrl.logout);
 
   // POST /auth/refresh
   router.post("/refresh", ctrl.refresh);

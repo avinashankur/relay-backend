@@ -84,17 +84,17 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req.cookies?.refresh_token;
 
       if (typeof refreshToken === "string" && refreshToken.length > 0) {
         await this.sessionService.revokeByRefreshToken(refreshToken);
       }
-
-      clearAuthCookies(res);
-      res.status(200).json(success({ message: "Logged out successfully" }));
     } catch (error) {
       next(error);
     }
+
+    clearAuthCookies(res);
+    res.status(200).json(success({ message: "Logged out successfully" }));
   };
 
   // POST /auth/refresh
