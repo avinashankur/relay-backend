@@ -2,8 +2,9 @@ import "dotenv/config";
 import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
-import { connectRedis } from "./config/redis";
+import { connectRedis, redis } from "./config/redis";
 import { shutdownEmailWorker } from "./workers/email/email.worker";
+import { prisma } from "./config/prisma";
 
 const PORT = Number(env.PORT);
 const app = createApp();
@@ -11,10 +12,10 @@ const app = createApp();
 // ── Validate critical environment variables ───────────────────────────────
 const required = [
   "DATABASE_URL",
-  // "REDIS_URL",
-  // "JWT_PRIVATE_KEY",
-  // "JWT_PUBLIC_KEY",
-  // "RESEND_API_KEY",
+  "REDIS_URL",
+  "JWT_PRIVATE_KEY",
+  "JWT_PUBLIC_KEY",
+  "RESEND_API_KEY",
   "NODE_ENV",
 ];
 
@@ -42,20 +43,35 @@ const server = app.listen(PORT, () => {
 async function shutdown(signal: string): Promise<void> {
   logger.info(`${signal} received — shutting down gracefully`);
 
-  server.close(async () => {
-    logger.info("HTTP server closed");
-    await shutdownEmailWorker();
-    // await prisma.$disconnect();
-    // await redis.quit();
-    logger.info("Shutdown complete");
-    process.exit(0);
-  });
-
   // Force exit if graceful shutdown takes too long
-  setTimeout(() => {
+  const timeoutId = setTimeout(() => {
     logger.error("Graceful shutdown timed out — forcing exit");
     process.exit(1);
   }, 10_000);
+
+  server.close(async (err) => {
+    if (
+      err &&
+      (err as NodeJS.ErrnoException).code !== "ERR_SERVER_NOT_RUNNING"
+    ) {
+      logger.error({ err }, "Error closing HTTP server");
+    } else {
+      logger.info("HTTP server closed");
+    }
+
+    try {
+      await shutdownEmailWorker();
+      await prisma.$disconnect();
+      await redis.quit();
+      logger.info("Shutdown complete");
+    } catch (shutdownError) {
+      logger.error({ err: shutdownError }, "Error during shutdown");
+      process.exit(1);
+    } finally {
+      clearTimeout(timeoutId);
+      process.exit(0);
+    }
+  });
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
