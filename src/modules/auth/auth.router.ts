@@ -58,9 +58,6 @@ export function createAuthRouter(
   // POST /auth/password-reset
   router.post("/password-reset", ctrl.passwordReset);
 
-  // GET /auth/email/verify?token=...
-  router.get("/email/verify", ctrl.verifyEmail);
-
   // POST /auth/verify-email
   router.post("/verify-email", ctrl.verifyEmail);
 

@@ -49,7 +49,7 @@ Goal: turn the current signup-only surface into a coherent auth API module.
 - [x] `P0` `Done` Add password reset request and confirm endpoints, including token issuance, validation, expiration, and audit logging.
 - [x] `P1` `Done` Add magic-link request and callback endpoints using the existing email/queue infrastructure.
 - [x] `P1` `Done` Add OTP request and verify endpoints with bounded verification attempts and expiry handling.
-- [ ] `P0` `In progress` Complete request validation schemas for every auth endpoint and make controller error responses consistent with the shared error model; most auth flows have schemas, but validation and controller behavior still diverge in places, including refresh/logout cookie handling and verification route semantics.
+- [x] `P0` `Done` Complete request validation schemas for every auth endpoint and make controller error responses consistent with the shared error model; most auth flows have schemas, but validation and controller behavior still diverge in places, including refresh/logout cookie handling and verification route semantics.
 - [ ] `P1` `In progress` Document expected cookie and token behavior for each auth endpoint so frontend and test implementations have a stable contract; planning docs exist, but they do not yet reflect the live `/api/v1/auth/*` routes and current cookie behavior accurately enough to serve as the canonical contract.
 
 ### 3. Session And Security Hardening

@@ -12,7 +12,7 @@ import {
 } from "./auth.validators";
 import { success } from "@/shared/utils/response";
 import { AuthService } from "./auth.service";
-import { ValidationError } from "@/shared/errors/ValidationError";
+import { parse } from "@/shared/utils/parse";
 import { logger } from "@/config/logger";
 import { clearAuthCookies, setAuthCookies } from "@/shared/utils/cookies";
 import { SessionService } from "../sessions/sessions.service";
@@ -31,13 +31,12 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const body = signupSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(signupSchema, req.body);
 
       const ip = req.ip ?? "unknown";
       const userAgent = req.get("User-Agent") || "unknown";
 
-      const result = await this.authService.signup(body.data, ip, userAgent);
+      const result = await this.authService.signup(body, ip, userAgent);
 
       setAuthCookies(res, {
         accessToken: result.accessToken,
@@ -58,13 +57,12 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const body = loginSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(loginSchema, req.body);
 
       const ip = req.ip ?? "unknown";
       const userAgent = req.get("User-Agent") || "unknown";
 
-      const result = await this.authService.login(body.data, ip, userAgent);
+      const result = await this.authService.login(body, ip, userAgent);
 
       setAuthCookies(res, {
         accessToken: result.accessToken,
@@ -89,12 +87,12 @@ export class AuthController {
       if (typeof refreshToken === "string" && refreshToken.length > 0) {
         await this.sessionService.revokeByRefreshToken(refreshToken);
       }
+
+      clearAuthCookies(res);
+      res.status(200).json(success({ message: "Logged out successfully" }));
     } catch (error) {
       next(error);
     }
-
-    clearAuthCookies(res);
-    res.status(200).json(success({ message: "Logged out successfully" }));
   };
 
   // POST /auth/refresh
@@ -104,7 +102,7 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req.cookies?.refresh_token;
 
       if (typeof refreshToken !== "string" || refreshToken.length === 0) {
         throw new AuthError("MISSING_REFRESH_TOKEN", "Invalid refresh token");
@@ -137,15 +135,11 @@ export class AuthController {
     try {
       console.log("[DEBUG] Magic link request body:", req.body);
 
-      const body = magicLinkRequestSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(magicLinkRequestSchema, req.body);
 
-      console.log("[DEBUG] Parsed body.data:", body.data);
+      console.log("[DEBUG] Parsed body:", body);
 
-      await this.authService.requestMagicLink(
-        body.data.email,
-        body.data.redirectUrl,
-      );
+      await this.authService.requestMagicLink(body.email, body.redirectUrl);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);
@@ -160,14 +154,13 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const body = magicLinkCallbackQuerySchema.safeParse(req.query);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(magicLinkCallbackQuerySchema, req.query);
 
       const ip = req.ip ?? "unknown";
       const userAgent = req.get("User-Agent") ?? "unknown";
 
       const { accessToken, refreshToken, redirectUrl } =
-        await this.authService.consumeMagicLink(body.data.token, ip, userAgent);
+        await this.authService.consumeMagicLink(body.token, ip, userAgent);
 
       setAuthCookies(res, { accessToken, refreshToken });
       res.redirect(redirectUrl);
@@ -181,10 +174,9 @@ export class AuthController {
   // Always returns 200 -- no email enumeration
   requestOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const body = otpRequestSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(otpRequestSchema, req.body);
 
-      await this.authService.requestOtp(body.data.email);
+      await this.authService.requestOtp(body.email);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);
@@ -199,21 +191,13 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const body = otpVerifySchema.safeParse(req.body);
-      if (!body.success) {
-        throw new ValidationError("VALIDATION_FAILED", "Invalid input");
-      }
+      const body = parse(otpVerifySchema, req.body);
 
       const ip = req.ip ?? "unknown";
       const userAgent = req.get("User-Agent") ?? "unknown";
 
       const { accessToken, refreshToken, user } =
-        await this.authService.verifyOtp(
-          body.data.email,
-          body.data.code,
-          ip,
-          userAgent,
-        );
+        await this.authService.verifyOtp(body.email, body.code, ip, userAgent);
 
       setAuthCookies(res, { accessToken, refreshToken });
       res.status(200).json(success({ user }));
@@ -230,10 +214,9 @@ export class AuthController {
     next: NextFunction,
   ) => {
     try {
-      const body = passwordResetRequestSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(passwordResetRequestSchema, req.body);
 
-      await this.authService.requestPasswordReset(body.data.email);
+      await this.authService.requestPasswordReset(body.email);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);
@@ -248,27 +231,22 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const body = passwordResetSchema.safeParse(req.body);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(passwordResetSchema, req.body);
 
-      await this.authService.resetPassword(
-        body.data.token,
-        body.data.newPassword,
-      );
+      await this.authService.resetPassword(body.token, body.newPassword);
       res.status(200).json(success(null));
     } catch (err) {
       next(err);
     }
   };
 
-  // GET /auth/email/verify?token=...
+  // POST /auth/verify-email
   // Marks the user's email as verified
   verifyEmail = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const body = emailVerifySchema.safeParse(req.query);
-      if (!body.success) throw ValidationError.fromZod(body.error);
+      const body = parse(emailVerifySchema, req.body);
 
-      await this.authService.verifyEmail(body.data.token);
+      await this.authService.verifyEmail(body.token);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);
