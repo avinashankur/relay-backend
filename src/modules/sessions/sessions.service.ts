@@ -209,10 +209,10 @@ export class SessionService {
     });
 
     if (!session) {
-      throw new Error("Session not found");
+      throw new AuthError("INVALID_TOKEN", "Session not found");
     }
 
-    if (session.id != userId) {
+    if (session.userId !== userId) {
       throw new ForbiddenError(
         "RESOURCE_FORBIDDEN",
         "You do not own this session",

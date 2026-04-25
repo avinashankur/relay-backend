@@ -480,8 +480,7 @@ describe("SessionService", () => {
         id: "sess_01",
       });
 
-      // The service checks session.id != userId — pass the session.id as userId to match
-      await service.revokeById("sess_01", "sess_01");
+      await service.revokeById("sess_01", "usr_01");
 
       expect(mockPrisma.session.delete).toHaveBeenCalledWith({
         where: { id: "sess_01" },
@@ -502,12 +501,12 @@ describe("SessionService", () => {
       expect(mockPrisma.session.delete).not.toHaveBeenCalled();
     });
 
-    it("throws when session is not found", async () => {
+    it("throws AuthError when session is not found", async () => {
       mockPrisma.session.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.revokeById("sess_ghost", "usr_01"),
-      ).rejects.toThrow();
+      await expect(service.revokeById("sess_ghost", "usr_01")).rejects.toThrow(
+        AuthError,
+      );
     });
 
     it("logs an audit event on successful revocation by ID", async () => {
@@ -516,12 +515,12 @@ describe("SessionService", () => {
         id: "sess_01",
       });
 
-      await service.revokeById("sess_01", "sess_01");
+      await service.revokeById("sess_01", "usr_01");
 
       expect(mockAuditService.log).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "session.revoked",
-          userId: "sess_01",
+          userId: "usr_01",
           metadata: expect.objectContaining({ sessionId: "sess_01" }),
         }),
       );
