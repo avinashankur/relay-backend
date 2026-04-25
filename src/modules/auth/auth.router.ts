@@ -61,5 +61,8 @@ export function createAuthRouter(
   // POST /auth/verify-email
   router.post("/verify-email", ctrl.verifyEmail);
 
+  // POST /auth/resend-verification
+  router.post("/resend-verification", ctrl.resendVerification);
+
   return router;
 }

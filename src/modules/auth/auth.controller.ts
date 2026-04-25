@@ -8,6 +8,7 @@ import {
   otpVerifySchema,
   passwordResetRequestSchema,
   passwordResetSchema,
+  resendVerificationSchema,
   signupSchema,
 } from "./auth.validators";
 import { success } from "@/shared/utils/response";
@@ -247,6 +248,23 @@ export class AuthController {
       const body = parse(emailVerifySchema, req.body);
 
       await this.authService.verifyEmail(body.token);
+      res.status(200).json(success(null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // POST /auth/resend-verification
+  // Always returns 200 — no email enumeration.
+  resendVerification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const body = parse(resendVerificationSchema, req.body);
+
+      await this.authService.resendVerificationEmail(body.email);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);

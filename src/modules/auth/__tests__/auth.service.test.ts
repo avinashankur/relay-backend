@@ -542,4 +542,88 @@ describe("AuthService", () => {
       ).rejects.toThrow(AuthError);
     });
   });
+
+  // ── resendVerificationEmail ─────────────────────────────────────────────────
+
+  describe("resendVerificationEmail", () => {
+    it("issues a new token, stores it in Redis, and sends verification email", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...baseUser,
+        emailVerified: false,
+      });
+
+      await service.resendVerificationEmail("test@example.com");
+
+      expect(mockCryptoService.generateToken).toHaveBeenCalledTimes(1);
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        expect.stringContaining("email:verify:"),
+        expect.any(String),
+        60 * 60 * 24,
+      );
+      expect(mockEmailService.sendVerificationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "usr_01",
+          email: "test@example.com",
+          token: "raw-token-abc123",
+        }),
+      );
+      expect(mockAuditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "auth.verification_email_resent",
+          userId: "usr_01",
+        }),
+      );
+    });
+
+    it("does nothing for an unknown email (no enumeration)", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.resendVerificationEmail("ghost@example.com"),
+      ).resolves.not.toThrow();
+
+      expect(mockEmailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it("does nothing if the user is soft-deleted", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...baseUser,
+        emailVerified: false,
+        deletedAt: new Date(),
+      });
+
+      await expect(
+        service.resendVerificationEmail("test@example.com"),
+      ).resolves.not.toThrow();
+
+      expect(mockEmailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it("does nothing if the user is suspended", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...baseUser,
+        emailVerified: false,
+        suspended: true,
+      });
+
+      await expect(
+        service.resendVerificationEmail("test@example.com"),
+      ).resolves.not.toThrow();
+
+      expect(mockEmailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it("does nothing if email is already verified", async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...baseUser,
+        emailVerified: true,
+      });
+
+      await expect(
+        service.resendVerificationEmail("test@example.com"),
+      ).resolves.not.toThrow();
+
+      expect(mockEmailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+  });
 });

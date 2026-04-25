@@ -45,7 +45,7 @@ Goal: turn the current signup-only surface into a coherent auth API module.
 
 - [x] `P0` `Done` Finish route and controller coverage for existing service capabilities so login is exposed and behaves consistently with signup.
 - [x] `P0` `Done` Add logout and refresh endpoints with explicit cookie handling, token rotation behavior, and failure responses; the endpoints exist, but the controller reads `refreshToken` while cookies are set as `refresh_token`, and the production refresh-cookie path does not match the mounted `/api/v1/auth/refresh` route.
-- [ ] `P0` `In progress` Add email verification callback and resend-verification endpoints backed by the existing verification token flow in Redis; verification exists, but there is no resend-verification endpoint yet.
+- [x] `P0` `Done` Add email verification callback and resend-verification endpoints backed by the existing verification token flow in Redis; verification exists, but there is no resend-verification endpoint yet.
 - [x] `P0` `Done` Add password reset request and confirm endpoints, including token issuance, validation, expiration, and audit logging.
 - [x] `P1` `Done` Add magic-link request and callback endpoints using the existing email/queue infrastructure.
 - [x] `P1` `Done` Add OTP request and verify endpoints with bounded verification attempts and expiry handling.

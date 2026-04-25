@@ -401,6 +401,36 @@ export class AuthService {
     await this.auditService.log({ action: "auth.email_verified" });
   }
 
+  // RESEND VERIFICATION EMAIL
+  // Always resolves — no email enumeration.
+  async resendVerificationEmail(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Silently bail: unknown address, deleted account, suspended, or already verified.
+    if (!user || user.deletedAt || user.suspended || user.emailVerified) return;
+
+    const { raw, hash } = await this.cryptoService.generateToken();
+
+    // Overwrite any existing (possibly expired) Redis entry so the latest
+    // link is always the valid one.
+    await this.redisService.set(
+      keys.emailVerify(hash),
+      JSON.stringify({ userId: user.id }),
+      TTL_EMAIL_VERIFY,
+    );
+
+    await this.emailService.sendVerificationEmail({
+      userId: user.id,
+      token: raw,
+      email: user.email,
+    });
+
+    await this.auditService.log({
+      action: "auth.verification_email_resent",
+      userId: user.id,
+    });
+  }
+
   // HELPERS
   private sanitizeUser(
     user: User,
