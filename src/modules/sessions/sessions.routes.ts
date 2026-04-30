@@ -1,39 +1,24 @@
 import { Router } from "express";
 import { SessionService } from "./sessions.service";
 import { requireAuth } from "@/shared/middleware/require-auth";
-
-import { prisma } from "@/config/prisma";
-import { redis } from "@/config/redis";
-import { AuditService } from "@/shared/services/audit.service";
-import { CryptoService } from "@/shared/services/crypto.service";
-import { EmailService } from "@/shared/services/email.service";
+import { parseToken } from "@/shared/middleware/parse-token";
+import { JwtService } from "@/shared/services/jwt.service";
 import { SessionsController } from "./sessions.controllers";
-import { RedisService } from "@/shared/services/redis.service";
 
-const redisService = new RedisService(redis);
-const auditService = new AuditService(prisma, redisService);
-const cryptoService = new CryptoService();
-const emailService = new EmailService();
+export function createSessionsRouter(sessionService: SessionService): Router {
+  const router = Router();
+  const controller = new SessionsController(sessionService);
+  const jwtService = new JwtService();
+  const tokenParser = parseToken(jwtService);
 
-const sessionService = new SessionService(
-  prisma,
-  auditService,
-  cryptoService,
-  emailService,
-  redisService,
-);
+  router.use(tokenParser, requireAuth);
 
-const controller = new SessionsController(sessionService);
+  // GET    /sessions       — list all active sessions for the authenticated user
+  // DELETE /sessions       — revoke all sessions (logout everywhere)
+  // DELETE /sessions/:id   — revoke a specific session by ID
+  router.get("/", controller.listSessions);
+  router.delete("/", controller.revokeAllSessions);
+  router.delete("/:id", controller.revokeSession);
 
-const router = Router();
-
-router.use(requireAuth);
-
-// GET    /sessions
-// DELETE /sessions
-// DELETE /sessions/:id
-router.get("/", controller.listSessions);
-router.delete("/", controller.revokeAllSessions);
-router.delete("/:id", controller.revokeSession);
-
-export { router as sessionsRouter };
+  return router;
+}

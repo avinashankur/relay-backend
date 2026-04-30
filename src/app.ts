@@ -25,6 +25,7 @@ import { OtpStrategy } from "./modules/auth/strategies/otp.strategy";
 import { createUserRouter } from "./modules/users/user.router";
 import { UserService } from "./modules/users/users.service";
 import { createAdminRouter } from "./modules/admin/admin.router";
+import { createSessionsRouter } from "./modules/sessions/sessions.routes";
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -135,6 +136,9 @@ export function createApp(): Application {
 
   // User Endpoint
   app.use("/api/v1/user", createUserRouter(userService));
+
+  // Sessions Endpoint
+  app.use("/api/v1/sessions", createSessionsRouter(sessionService));
 
   // Admin Endpoint (requires auth + admin role)
   app.use(
