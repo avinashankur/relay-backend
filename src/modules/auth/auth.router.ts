@@ -3,14 +3,14 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { SessionService } from "../sessions/sessions.service";
 import { RedisService } from "@/shared/services/redis.service";
-import { createRateLimit } from "@/shared/middleware/rate-limit";
-import { parseToken } from "@/shared/middleware/parse-token";
+import { createRateLimit, parseToken } from "@/shared/middleware";
 import { JwtService } from "@/shared/services/jwt.service";
 
 export function createAuthRouter(
   authService: AuthService,
   sessionService: SessionService,
   redisService: RedisService,
+  jwtService: JwtService,
 ): Router {
   const loginLimit = createRateLimit(redisService, {
     prefix: "rl:login",
@@ -25,8 +25,6 @@ export function createAuthRouter(
 
   const router = Router();
   const ctrl = new AuthController(authService, sessionService);
-  const jwtService = new JwtService();
-  const tokenParser = parseToken(jwtService);
 
   // POST /auth/signup
   router.post("/signup", signupLimit, ctrl.signup);
@@ -34,8 +32,8 @@ export function createAuthRouter(
   // POST /auth/login
   router.post("/login", loginLimit, ctrl.login);
 
-  // POST /auth/logout
-  router.post("/logout", tokenParser, ctrl.logout);
+  // POST /auth/logout — token is optional (best-effort session revocation)
+  router.post("/logout", parseToken(jwtService), ctrl.logout);
 
   // POST /auth/refresh
   router.post("/refresh", ctrl.refresh);

@@ -2,30 +2,38 @@ import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminService } from "./admin.service";
 import { SessionService } from "../sessions/sessions.service";
-import { requireAuth } from "@/shared/middleware/require-auth";
-import { parseToken } from "@/shared/middleware/parse-token";
+import {
+  parseToken,
+  requireAuth,
+  requireRole,
+  requireSession,
+} from "@/shared/middleware";
 import { JwtService } from "@/shared/services/jwt.service";
 import { PrismaClient } from "@/generated/prisma/client";
 import { AuditService } from "@/shared/services/audit.service";
-import { requireRole } from "@/shared/middleware/require-role";
 
 export function createAdminRouter(
   prisma: PrismaClient,
   sessionService: SessionService,
   auditService: AuditService,
+  jwtService: JwtService,
 ): Router {
   const router = Router();
 
   const adminService = new AdminService(prisma, auditService, sessionService);
   const controller = new AdminController(adminService);
 
-  const jwtService = new JwtService();
-  const tokenParser = parseToken(jwtService);
-
-  // All admin routes require a valid session AND the ADMIN role
-  router.use(tokenParser);
-  router.use(requireAuth);
-  router.use(requireRole("ADMIN"));
+  // All admin routes require:
+  //   1. A valid, parseable access token (parseToken)
+  //   2. An authenticated user (requireAuth)
+  //   3. A live session in DB — prevents revoked tokens from reaching admin APIs (requireSession)
+  //   4. The ADMIN role (requireRole)
+  router.use(
+    parseToken(jwtService),
+    requireAuth,
+    requireSession(prisma),
+    requireRole("ADMIN"),
+  );
 
   // Users
   router.get("/users", controller.listUsers);

@@ -26,6 +26,7 @@ import { createUserRouter } from "./modules/users/user.router";
 import { UserService } from "./modules/users/users.service";
 import { createAdminRouter } from "./modules/admin/admin.router";
 import { createSessionsRouter } from "./modules/sessions/sessions.routes";
+import { JwtService } from "./shared/services/jwt.service";
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -107,6 +108,10 @@ export function createApp(): Application {
     emailService,
   );
 
+  // Single JwtService singleton — loads RSA keys once at startup and is
+  // shared across all routers. Do not construct per-router instances.
+  const jwtService = new JwtService();
+
   // Routes here
   // Health Endpoints
   app.get("/health", (_req, res) => {
@@ -131,19 +136,22 @@ export function createApp(): Application {
   // Auth Endpoint
   app.use(
     "/api/v1/auth",
-    createAuthRouter(authService, sessionService, redisService),
+    createAuthRouter(authService, sessionService, redisService, jwtService),
   );
 
   // User Endpoint
-  app.use("/api/v1/user", createUserRouter(userService));
+  app.use("/api/v1/user", createUserRouter(userService, jwtService));
 
   // Sessions Endpoint
-  app.use("/api/v1/sessions", createSessionsRouter(sessionService));
+  app.use(
+    "/api/v1/sessions",
+    createSessionsRouter(sessionService, jwtService, prisma),
+  );
 
-  // Admin Endpoint (requires auth + admin role)
+  // Admin Endpoint (requires auth + admin role + live session)
   app.use(
     "/api/v1/admin",
-    createAdminRouter(prisma, sessionService, auditService),
+    createAdminRouter(prisma, sessionService, auditService, jwtService),
   );
 
   // 404 catch-all

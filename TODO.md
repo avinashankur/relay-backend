@@ -40,6 +40,7 @@ Cross-reference format in code comments: `See TODO.md [PREFIX-NN]`
 - Graceful shutdown is incomplete in `src/server.ts`; Prisma and Redis disconnect paths are commented out.
 - API and worker runtime boundaries are not cleanly separated into dedicated entrypoints/process contracts yet.
 - Email workers exist but lack production-grade retry, dead-letter, and operational configurations in BullMQ.
+- Three middleware functions (`parseToken`, `requireAuth`, `requireRole`, `requireSession`) are fully implemented and exported from `src/shared/middleware/index.ts`. A singleton `JwtService` is wired in `createApp` and injected into all router factories. The `parseToken` middleware accepts both cookie and `Authorization: Bearer` token sources, and propagates `sessionId` into `req.user`. The `requireSession` middleware enforces session liveness in the DB for sensitive routes (admin, sessions).
 
 ## Delivery Backlog By Workstream
 
@@ -74,7 +75,7 @@ Goal: make session management intentional, testable, and safe to run in producti
 - [x] `SEC-01` `P0` `Done` Decide and enforce the email-verification policy during login and other privileged auth flows instead of leaving the check commented out.
 - [x] `SEC-02` `P0` `Done` Finish refresh-token rotation and reuse-detection behavior, including explicit session invalidation and audit trails for reuse events.
 - [x] `SEC-03` `P0` `Done` Add session list and revoke APIs so users and future admin flows can inspect and terminate active sessions.
-- [ ] `SEC-04` `P1` `Not started` Add middleware for request identity extraction, authenticated route protection, and role enforcement to support non-public APIs.
+- [x] `SEC-04` `P1` `Done` Add middleware for request identity extraction, authenticated route protection, and role enforcement to support non-public APIs.
 - [ ] `SEC-05` `P1` `Not started` Add or document missing CSRF and rate-limiting behavior for auth endpoints so brute-force and cross-site request protections are not left implicit.
 - [ ] `SEC-06` `P1` `Not started` Complete graceful shutdown by disconnecting Prisma, Redis, queues, and workers cleanly on process termination.
 
