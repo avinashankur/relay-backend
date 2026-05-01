@@ -8,5 +8,6 @@ export { parseToken } from "./parse-token";
 export { requireAuth } from "./require-auth";
 export { requireRole } from "./require-role";
 export { requireSession } from "./require-session";
+export { requireJsonBody } from "./require-json-body";
 export { errorHandler } from "./error-handler";
 export { createRateLimit } from "./rate-limit";

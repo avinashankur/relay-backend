@@ -76,7 +76,7 @@ Goal: make session management intentional, testable, and safe to run in producti
 - [x] `SEC-02` `P0` `Done` Finish refresh-token rotation and reuse-detection behavior, including explicit session invalidation and audit trails for reuse events.
 - [x] `SEC-03` `P0` `Done` Add session list and revoke APIs so users and future admin flows can inspect and terminate active sessions.
 - [x] `SEC-04` `P1` `Done` Add middleware for request identity extraction, authenticated route protection, and role enforcement to support non-public APIs.
-- [ ] `SEC-05` `P1` `Not started` Add or document missing CSRF and rate-limiting behavior for auth endpoints so brute-force and cross-site request protections are not left implicit.
+- [x] `SEC-05` `P1` `Done` Add or document missing CSRF and rate-limiting behavior for auth endpoints so brute-force and cross-site request protections are not left implicit.
 - [ ] `SEC-06` `P1` `Not started` Complete graceful shutdown by disconnecting Prisma, Redis, queues, and workers cleanly on process termination.
 
 ### 4. Email And Background Processing
