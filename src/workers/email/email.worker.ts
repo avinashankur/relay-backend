@@ -6,6 +6,7 @@ import * as Sentry from "@sentry/node";
 import {
   EMAIL_QUEUE_NAME,
   EmailJobName,
+  type SendDemoJobData,
   type SendMagicLinkJobData,
   type SendOtpJobData,
   type SendPasswordResetJobData,
@@ -18,6 +19,7 @@ import { sendMagicLink } from "./handlers/send-magic-link";
 import { sendOtp } from "./handlers/send-otp";
 import { sendPasswordReset } from "./handlers/send-password-reset";
 import { sendSecurityAlert } from "./handlers/send-security-alert";
+import { sendDemoEmail } from "./handlers/send-demo-email";
 
 async function processEmailJob(job: Job): Promise<void> {
   logger.info({ jobId: job.id, jobName: job.name }, "Processing email job");
@@ -41,6 +43,10 @@ async function processEmailJob(job: Job): Promise<void> {
 
     case EmailJobName.SendSecurityAlert:
       await sendSecurityAlert(job.data as SendSecurityAlertJobData);
+      break;
+
+    case EmailJobName.SendDemo:
+      await sendDemoEmail(job.data as SendDemoJobData);
       break;
 
     default:

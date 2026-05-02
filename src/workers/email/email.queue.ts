@@ -7,6 +7,7 @@ export enum EmailJobName {
   SendOtp = "send-otp",
   SendPasswordReset = "send-password-reset",
   SendSecurityAlert = "send-security-alert",
+  SendDemo = "send-demo",
 }
 
 export interface SendVerificationJobData {
@@ -44,12 +45,17 @@ export interface SendSecurityAlertJobData {
     | "account_deletion";
 }
 
+export interface SendDemoJobData {
+  email: string;
+}
+
 export type EmailJobData =
   | { name: EmailJobName.SendVerification; data: SendVerificationJobData }
   | { name: EmailJobName.SendMagicLink; data: SendMagicLinkJobData }
   | { name: EmailJobName.SendOtp; data: SendOtpJobData }
   | { name: EmailJobName.SendPasswordReset; data: SendPasswordResetJobData }
-  | { name: EmailJobName.SendSecurityAlert; data: SendSecurityAlertJobData };
+  | { name: EmailJobName.SendSecurityAlert; data: SendSecurityAlertJobData }
+  | { name: EmailJobName.SendDemo; data: SendDemoJobData };
 
 export const EMAIL_QUEUE_NAME = "email";
 

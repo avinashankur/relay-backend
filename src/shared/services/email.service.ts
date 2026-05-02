@@ -1,10 +1,12 @@
 import {
   emailQueue,
+  EmailJobName,
   type SendVerificationJobData,
   type SendMagicLinkJobData,
   type SendOtpJobData,
   type SendPasswordResetJobData,
   type SendSecurityAlertJobData,
+  type SendDemoJobData,
 } from "@/workers/email/email.queue";
 import type { Queue } from "bullmq";
 import { logger } from "@/config/logger";
@@ -111,6 +113,22 @@ export class EmailService {
         alertType: payload.alertType,
       },
       "Enqueued CRITICAL send-security-alert email job",
+    );
+    return job.id!;
+  }
+
+  /**
+   * Enqueue a demo/test email. For development and delivery-pipeline testing only.
+   */
+  async sendDemoEmail(payload: SendDemoJobData): Promise<string> {
+    const job = await this.queue.add(
+      EmailJobName.SendDemo,
+      payload,
+      DEFAULT_JOB_OPTIONS,
+    );
+    logger.info(
+      { jobId: job.id, email: payload.email },
+      "Enqueued send-demo email job",
     );
     return job.id!;
   }

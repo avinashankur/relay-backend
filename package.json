@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check",
     "format:fix": "prettier --write",
-    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest.config.cjs --selectProjects unit"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest.config.cjs --selectProjects unit",
+    "script:send-demo-email": "tsx --tsconfig tsconfig.json scripts/send-demo-email.ts"
   },
   "keywords": [],
   "author": "",
