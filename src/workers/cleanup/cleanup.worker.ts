@@ -2,7 +2,7 @@ import { Worker, Job } from "bullmq";
 import { Redis } from "ioredis";
 import { PrismaClient } from "@/generated/prisma/client";
 import { AuditService } from "@/shared/services/audit.service";
-import { jobLogger } from "@/config/logger";
+import { jobLogger, logger } from "@/config/logger";
 import { CLEANUP_JOBS, type CleanupJobName } from "./cleanup.queue";
 import { expireSessions } from "./handlers/expire-sessions";
 import { hardDeleteUsers } from "./handlers/hard-delete-users";
@@ -47,5 +47,19 @@ export function createCleanupWorker(
     }).error({ err }, "Job failed");
   });
 
+  worker.on("error", (err) => {
+    logger.error({ err }, "Cleanup worker connection error");
+  });
+
   return worker;
+}
+
+/**
+ * Gracefully drain the cleanup worker and close its BullMQ connection.
+ * Waits for any currently-executing job to finish before closing.
+ */
+export async function shutdownCleanupWorker(worker: Worker): Promise<void> {
+  logger.info("Shutting down cleanup worker...");
+  await worker.close();
+  logger.info("Cleanup worker shut down");
 }

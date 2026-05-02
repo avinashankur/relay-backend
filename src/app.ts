@@ -13,11 +13,9 @@ import { prisma } from "./config/prisma";
 import { createAuthRouter } from "./modules/auth/auth.router";
 import { AuditService } from "./shared/services/audit.service";
 import { SessionService } from "./modules/sessions/sessions.service";
-import { Queue } from "bullmq";
 import { RedisService } from "./shared/services/redis.service";
-import { redis, redisConnection } from "./config/redis";
+import { redis } from "./config/redis";
 import { CryptoService } from "./shared/services/crypto.service";
-import type { EmailJobData } from "./workers/email/email.queue";
 import { EmailService } from "./shared/services/email.service";
 import { failure, success } from "./shared/utils/response";
 import { errorHandler } from "./shared/middleware/error-handler";
@@ -27,6 +25,12 @@ import { UserService } from "./modules/users/users.service";
 import { createAdminRouter } from "./modules/admin/admin.router";
 import { createSessionsRouter } from "./modules/sessions/sessions.routes";
 import { JwtService } from "./shared/services/jwt.service";
+
+export interface AppInstance {
+  app: Application;
+  /** Clear this interval during graceful shutdown before tearing down Prisma/Redis. */
+  auditFlushInterval: ReturnType<typeof setInterval>;
+}
 
 const AUDIT_FLUSH_INTERVAL_MS = 30_000;
 
@@ -50,7 +54,7 @@ async function withTimeout<T>(
   }
 }
 
-export function createApp(): Application {
+export function createApp(): AppInstance {
   const app = express();
 
   // Security headers
@@ -68,10 +72,10 @@ export function createApp(): Application {
   const redisService = new RedisService(redis);
   const cryptoService = new CryptoService();
   const otpStrategy = new OtpStrategy(cryptoService, redisService);
-  const emailQueue = new Queue<EmailJobData>("email", {
-    connection: redisConnection,
-  });
-  const emailService = new EmailService(emailQueue);
+  // EmailService uses its own singleton queue (email.queue.ts). Do not create
+  // a second Queue instance here — it would leak a BullMQ connection and be
+  // invisible to the shutdown sequence in server.ts.
+  const emailService = new EmailService();
   const auditService = new AuditService(prisma, redisService);
 
   // Drain Redis-buffered audit events to Postgres on a fixed cadence.
@@ -161,5 +165,5 @@ export function createApp(): Application {
 
   app.use(errorHandler);
 
-  return app;
+  return { app, auditFlushInterval };
 }
