@@ -33,7 +33,10 @@ export function Layout({ previewText, children }: LayoutProps) {
               </Text>
             </Section>
             {/* Content Section */}
-            <Section className="bg-white rounded-lg px-12 py-10 border border-neutral-200">
+            <Section
+              className="bg-white rounded-lg px-12 py-10 border border-neutral-200"
+              style={bodyFont}
+            >
               {children}
             </Section>
             {/* Footer */}
@@ -55,9 +58,13 @@ export function Layout({ previewText, children }: LayoutProps) {
 }
 
 const bodyFont: React.CSSProperties = {
-  fontFamily: "'Georgia', 'Times New Roman', serif",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  WebkitFontSmoothing: "antialiased",
 };
 
 const wordmarkFont: React.CSSProperties = {
-  fontFamily: "'Georgia', serif",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  letterSpacing: "-0.02em",
 };
