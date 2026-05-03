@@ -20,7 +20,7 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
 
 const base: React.CSSProperties = {
   display: "inline-block",
-  borderRadius: "6px",
+  borderRadius: "8px",
   padding: "12px 28px",
   fontSize: "14px",
   fontWeight: "600",

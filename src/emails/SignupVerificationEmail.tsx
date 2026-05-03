@@ -1,4 +1,4 @@
-import { Text, Section } from "@react-email/components";
+import { Text, Section, Hr } from "@react-email/components";
 import { Layout } from "./components/Layout";
 import { Button } from "./components/Button";
 
@@ -6,37 +6,91 @@ interface SignupVerificationEmailProps {
   verificationUrl: string;
 }
 
+const sans =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
 export function SignupVerificationEmail({
   verificationUrl,
 }: SignupVerificationEmailProps) {
   return (
-    <Layout previewText="Verify your email address to get started">
-      <Text className="text-xl font-bold tracking-tight text-zinc-900 m-0 mb-3">
-        Verify your email
-      </Text>
+    <Layout previewText="Verify your email address to get started with Relay">
+      <Text style={labelStyle}>Welcome</Text>
+      <Text style={headingStyle}>Verify your email address</Text>
 
-      <Text className="text-sm text-zinc-600 leading-relaxed mt-0 mb-7">
+      <Text style={bodyStyle}>
         Thanks for signing up. Click the button below to verify your email
-        address and activate your account.
+        address and activate your account. This link expires in{" "}
+        <span style={emphasisStyle}>24 hours</span>.
       </Text>
 
-      <Section className="mb-7">
+      <Section style={{ paddingBottom: "8px" }}>
         <Button href={verificationUrl}>Verify email address</Button>
       </Section>
 
-      <Text className="text-xs text-zinc-500 leading-relaxed mt-0 mb-4">
-        This link expires in <strong>24 hours</strong>. If you didn't create an
-        account, you can safely ignore this email.
-      </Text>
+      <Hr style={hrStyle} />
 
-      <Text className="text-xs text-zinc-400 leading-relaxed m-0">
-        Or copy and paste this URL into your browser:{" "}
-        <span style={{ color: "#09090b", wordBreak: "break-all" }}>
-          {verificationUrl}
-        </span>
+      <Text style={disclaimerStyle}>
+        If you didn't create an account, you can safely ignore this email.{" "}
+        <span style={fallbackLinkStyle}>{verificationUrl}</span>
       </Text>
     </Layout>
   );
 }
 
 export default SignupVerificationEmail;
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "11px",
+  fontWeight: "600",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "#a1a1aa",
+  margin: "0 0 14px 0",
+};
+
+const headingStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "22px",
+  fontWeight: "700",
+  letterSpacing: "-0.025em",
+  color: "#09090b",
+  lineHeight: "1.3",
+  margin: "0 0 12px 0",
+};
+
+const bodyStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "14px",
+  color: "#52525b",
+  lineHeight: "1.65",
+  margin: "0 0 20px 0",
+};
+
+const emphasisStyle: React.CSSProperties = {
+  color: "#09090b",
+  fontWeight: "600",
+};
+
+const hrStyle: React.CSSProperties = {
+  borderTop: "1px solid #f4f4f5",
+  borderBottom: "none",
+  borderLeft: "none",
+  borderRight: "none",
+  margin: "24px 0",
+};
+
+const disclaimerStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "12px",
+  color: "#a1a1aa",
+  lineHeight: "1.6",
+  margin: "0",
+};
+
+const fallbackLinkStyle: React.CSSProperties = {
+  display: "block",
+  color: "#a1a1aa",
+  wordBreak: "break-all",
+  marginTop: "8px",
+};
