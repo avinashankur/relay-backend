@@ -15,7 +15,7 @@ export async function sendMagicLink(data: SendMagicLinkJobData): Promise<void> {
     from: env.EMAIL_FROM,
     to: email,
     subject: "Your sign-in link",
-    react: MagicLinkEmail({ magicLinkUrl }),
+    react: MagicLinkEmail({ magicLinkUrl, recipientEmail: email }),
   });
 
   if (error) {

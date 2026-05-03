@@ -27,6 +27,7 @@
     ]
   },
   "devDependencies": {
+    "@react-email/ui": "^6.0.5",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",

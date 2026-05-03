@@ -4,33 +4,46 @@ import { Button } from "./components/Button";
 
 interface PasswordResetEmailProps {
   resetUrl: string;
+  recipientEmail: string;
 }
 
 const sans =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
-export function PasswordResetEmail({ resetUrl }: PasswordResetEmailProps) {
+export function PasswordResetEmail({
+  resetUrl,
+  recipientEmail,
+}: PasswordResetEmailProps) {
   return (
-    <Layout previewText="Reset your Relay password — link expires in 30 minutes">
+    <Layout previewText="Reset your Relay password within 30 minutes">
       <Text style={labelStyle}>Password reset</Text>
       <Text style={headingStyle}>Reset your password</Text>
 
       <Text style={bodyStyle}>
-        We received a request to reset your password. Click the button below to
-        choose a new one. This link expires in{" "}
-        <span style={emphasisStyle}>30 minutes</span> and can only be used once.
+        We received a request to reset the Relay password for{" "}
+        <span style={emphasisStyle}>{recipientEmail}</span>. Use the button
+        below to choose a new password. This link expires in{" "}
+        <span style={emphasisStyle}>30 minutes</span>.
       </Text>
 
-      <Section style={{ paddingBottom: "8px" }}>
+      <Section style={buttonSectionStyle}>
         <Button href={resetUrl}>Reset password</Button>
       </Section>
 
       <Hr style={hrStyle} />
 
-      <Text style={disclaimerStyle}>
-        If you didn't request a password reset, you can safely ignore this
-        email. Your password will not be changed.{" "}
+      <Text style={sectionHeadingStyle}>Having trouble?</Text>
+      <Text style={bodyStyle}>
+        Copy and paste this reset link into your browser. The link can only be
+        used once and stops working after it expires.
         <span style={fallbackLinkStyle}>{resetUrl}</span>
+      </Text>
+
+      <Hr style={hrStyle} />
+
+      <Text style={disclaimerStyle}>
+        If you did not request a password reset, you can safely ignore this
+        email. Your password will stay unchanged unless this link is used.
       </Text>
     </Layout>
   );
@@ -58,9 +71,19 @@ const headingStyle: React.CSSProperties = {
   margin: "0 0 12px 0",
 };
 
+const sectionHeadingStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "13px",
+  fontWeight: "600",
+  letterSpacing: "-0.01em",
+  color: "#09090b",
+  margin: "0 0 6px 0",
+};
+
 const bodyStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "14px",
+  fontWeight: "400",
   color: "#52525b",
   lineHeight: "1.65",
   margin: "0 0 20px 0",
@@ -69,6 +92,11 @@ const bodyStyle: React.CSSProperties = {
 const emphasisStyle: React.CSSProperties = {
   color: "#09090b",
   fontWeight: "600",
+};
+
+const buttonSectionStyle: React.CSSProperties = {
+  fontFamily: sans,
+  paddingBottom: "8px",
 };
 
 const hrStyle: React.CSSProperties = {
@@ -82,6 +110,7 @@ const hrStyle: React.CSSProperties = {
 const disclaimerStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "12px",
+  fontWeight: "400",
   color: "#a1a1aa",
   lineHeight: "1.6",
   margin: "0",
@@ -89,7 +118,8 @@ const disclaimerStyle: React.CSSProperties = {
 
 const fallbackLinkStyle: React.CSSProperties = {
   display: "block",
-  color: "#a1a1aa",
+  fontFamily: sans,
+  color: "#09090b",
   wordBreak: "break-all",
   marginTop: "8px",
 };

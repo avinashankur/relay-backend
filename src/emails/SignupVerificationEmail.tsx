@@ -4,6 +4,7 @@ import { Button } from "./components/Button";
 
 interface SignupVerificationEmailProps {
   verificationUrl: string;
+  recipientEmail: string;
 }
 
 const sans =
@@ -11,27 +12,38 @@ const sans =
 
 export function SignupVerificationEmail({
   verificationUrl,
+  recipientEmail,
 }: SignupVerificationEmailProps) {
   return (
-    <Layout previewText="Verify your email address to get started with Relay">
-      <Text style={labelStyle}>Welcome</Text>
+    <Layout previewText="Verify your email address to finish setting up Relay">
+      <Text style={labelStyle}>Welcome to Relay</Text>
       <Text style={headingStyle}>Verify your email address</Text>
 
       <Text style={bodyStyle}>
-        Thanks for signing up. Click the button below to verify your email
-        address and activate your account. This link expires in{" "}
+        Thanks for signing up. Verify{" "}
+        <span style={emphasisStyle}>{recipientEmail}</span> to activate your
+        Relay account. This link expires in{" "}
         <span style={emphasisStyle}>24 hours</span>.
       </Text>
 
-      <Section style={{ paddingBottom: "8px" }}>
-        <Button href={verificationUrl}>Verify email address</Button>
+      <Section style={buttonSectionStyle}>
+        <Button href={verificationUrl}>Verify email</Button>
       </Section>
 
       <Hr style={hrStyle} />
 
-      <Text style={disclaimerStyle}>
-        If you didn't create an account, you can safely ignore this email.{" "}
+      <Text style={sectionHeadingStyle}>Having trouble?</Text>
+      <Text style={bodyStyle}>
+        Copy and paste this verification link into your browser. For your
+        protection, the link can only be used once.
         <span style={fallbackLinkStyle}>{verificationUrl}</span>
+      </Text>
+
+      <Hr style={hrStyle} />
+
+      <Text style={disclaimerStyle}>
+        If you did not create a Relay account, you can safely ignore this email.
+        Relay will not activate an account unless this address is verified.
       </Text>
     </Layout>
   );
@@ -59,9 +71,19 @@ const headingStyle: React.CSSProperties = {
   margin: "0 0 12px 0",
 };
 
+const sectionHeadingStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "13px",
+  fontWeight: "600",
+  letterSpacing: "-0.01em",
+  color: "#09090b",
+  margin: "0 0 6px 0",
+};
+
 const bodyStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "14px",
+  fontWeight: "400",
   color: "#52525b",
   lineHeight: "1.65",
   margin: "0 0 20px 0",
@@ -70,6 +92,11 @@ const bodyStyle: React.CSSProperties = {
 const emphasisStyle: React.CSSProperties = {
   color: "#09090b",
   fontWeight: "600",
+};
+
+const buttonSectionStyle: React.CSSProperties = {
+  fontFamily: sans,
+  paddingBottom: "8px",
 };
 
 const hrStyle: React.CSSProperties = {
@@ -83,6 +110,7 @@ const hrStyle: React.CSSProperties = {
 const disclaimerStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "12px",
+  fontWeight: "400",
   color: "#a1a1aa",
   lineHeight: "1.6",
   margin: "0",
@@ -90,7 +118,8 @@ const disclaimerStyle: React.CSSProperties = {
 
 const fallbackLinkStyle: React.CSSProperties = {
   display: "block",
-  color: "#a1a1aa",
+  fontFamily: sans,
+  color: "#09090b",
   wordBreak: "break-all",
   marginTop: "8px",
 };

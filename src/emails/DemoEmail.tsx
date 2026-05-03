@@ -25,7 +25,7 @@ export function DemoEmail({ recipientEmail }: DemoEmailProps) {
           {recipientEmail}
         </span>{" "}
         to confirm that the email delivery pipeline is working correctly. No
-        action is required — this is not a real transactional email.
+        action is required; this is not a real transactional email.
       </Text>
 
       {/* Divider */}
@@ -34,8 +34,8 @@ export function DemoEmail({ recipientEmail }: DemoEmailProps) {
       {/* What's being tested */}
       <Text style={sectionHeadingStyle}>What's being tested</Text>
       <Text style={bodyStyle}>
-        This message exercises the full email path: job enqueue → BullMQ worker
-        → Resend API → inbox delivery. If you're reading this, all three stages
+        This message exercises the full email path: job enqueue, BullMQ worker,
+        Resend API, and inbox delivery. If you are reading this, each stage
         completed successfully.
       </Text>
 
@@ -95,8 +95,8 @@ export function DemoEmail({ recipientEmail }: DemoEmailProps) {
         your email client.
       </Text>
 
-      <Section style={{ paddingBottom: "8px" }}>
-        <Button href="#">Test primary button</Button>
+      <Section style={buttonSectionStyle}>
+        <Button href="#">Check button rendering</Button>
       </Section>
 
       {/* Divider */}
@@ -158,6 +158,7 @@ const hrStyle: React.CSSProperties = {
 };
 
 const metaBoxStyle: React.CSSProperties = {
+  fontFamily: sans,
   backgroundColor: "#fafafa",
   borderRadius: "8px",
   border: "1px solid #f4f4f5",
@@ -183,8 +184,14 @@ const metaLabelStyle: React.CSSProperties = {
 const metaValueStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "12px",
+  fontWeight: "400",
   color: "#09090b",
   margin: "6px 0",
+};
+
+const buttonSectionStyle: React.CSSProperties = {
+  fontFamily: sans,
+  paddingBottom: "8px",
 };
 
 const disclaimerStyle: React.CSSProperties = {

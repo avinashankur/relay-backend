@@ -3,12 +3,13 @@ import { Layout } from "./components/Layout";
 
 interface OtpEmailProps {
   code: string;
+  recipientEmail: string;
 }
 
 const sans =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
-export function OtpEmail({ code }: OtpEmailProps) {
+export function OtpEmail({ code, recipientEmail }: OtpEmailProps) {
   const formattedCode = `${code.slice(0, 3)} ${code.slice(3)}`;
 
   return (
@@ -17,21 +18,29 @@ export function OtpEmail({ code }: OtpEmailProps) {
       <Text style={headingStyle}>Your one-time code</Text>
 
       <Text style={bodyStyle}>
-        Use the code below to complete your sign-in. It expires in{" "}
+        Use this code for <span style={emphasisStyle}>{recipientEmail}</span> to
+        finish signing in to Relay. It expires in{" "}
         <span style={emphasisStyle}>10 minutes</span> and can only be used once.
       </Text>
 
-      {/* OTP code block */}
       <Section style={codeContainerStyle}>
         <Text style={codeStyle}>{formattedCode}</Text>
       </Section>
 
       <Hr style={hrStyle} />
 
+      <Text style={sectionHeadingStyle}>Code not working?</Text>
+      <Text style={bodyStyle}>
+        Request a new code from the sign-in screen. For your protection, Relay
+        locks this verification attempt after{" "}
+        <span style={emphasisStyle}>5 incorrect tries</span>.
+      </Text>
+
+      <Hr style={hrStyle} />
+
       <Text style={disclaimerStyle}>
-        You have <span style={emphasisStyle}>5 attempts</span> before the code
-        is locked. If you didn't request this code, you can safely ignore this
-        email.
+        If you did not request this code, you can safely ignore this email.
+        Relay will not sign you in without the code.
       </Text>
     </Layout>
   );
@@ -59,9 +68,19 @@ const headingStyle: React.CSSProperties = {
   margin: "0 0 12px 0",
 };
 
+const sectionHeadingStyle: React.CSSProperties = {
+  fontFamily: sans,
+  fontSize: "13px",
+  fontWeight: "600",
+  letterSpacing: "-0.01em",
+  color: "#09090b",
+  margin: "0 0 6px 0",
+};
+
 const bodyStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "14px",
+  fontWeight: "400",
   color: "#52525b",
   lineHeight: "1.65",
   margin: "0 0 20px 0",
@@ -73,6 +92,7 @@ const emphasisStyle: React.CSSProperties = {
 };
 
 const codeContainerStyle: React.CSSProperties = {
+  fontFamily: sans,
   backgroundColor: "#fafafa",
   borderRadius: "8px",
   border: "1px solid #f4f4f5",
@@ -102,6 +122,7 @@ const hrStyle: React.CSSProperties = {
 const disclaimerStyle: React.CSSProperties = {
   fontFamily: sans,
   fontSize: "12px",
+  fontWeight: "400",
   color: "#a1a1aa",
   lineHeight: "1.6",
   margin: "0",

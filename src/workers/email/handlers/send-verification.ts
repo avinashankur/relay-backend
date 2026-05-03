@@ -17,7 +17,7 @@ export async function sendVerification(
     from: env.EMAIL_FROM,
     to: email,
     subject: "Verify your email address",
-    react: SignupVerificationEmail({ verificationUrl }),
+    react: SignupVerificationEmail({ verificationUrl, recipientEmail: email }),
   });
 
   if (error) {

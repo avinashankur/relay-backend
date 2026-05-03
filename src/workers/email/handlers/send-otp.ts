@@ -12,7 +12,7 @@ export async function sendOtp(data: SendOtpJobData): Promise<void> {
     from: env.EMAIL_FROM,
     to: email,
     subject: "Your verification code",
-    react: OtpEmail({ code }),
+    react: OtpEmail({ code, recipientEmail: email }),
   });
 
   if (error) {

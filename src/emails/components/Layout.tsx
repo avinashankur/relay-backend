@@ -5,7 +5,6 @@ import {
   Html,
   Preview,
   Section,
-  Tailwind,
   Text,
 } from "@react-email/components";
 
@@ -19,31 +18,26 @@ const sans =
 
 export function Layout({ previewText, children }: LayoutProps) {
   return (
-    <Tailwind>
-      <Html lang="en">
-        <Head />
-        <Preview>{previewText}</Preview>
-        <Body style={bodyStyle}>
-          <Container style={containerStyle}>
-            {/* Wordmark */}
-            <Section style={headerStyle}>
-              <Text style={wordmarkStyle}>Relay</Text>
-            </Section>
+    <Html lang="en">
+      <Head />
+      <Preview>{previewText}</Preview>
+      <Body style={bodyStyle}>
+        <Container style={containerStyle}>
+          <Section style={headerStyle}>
+            <Text style={wordmarkStyle}>Relay</Text>
+          </Section>
 
-            {/* Card */}
-            <Section style={cardStyle}>{children}</Section>
+          <Section style={contentStyle}>{children}</Section>
 
-            {/* Footer */}
-            <Section style={footerStyle}>
-              <Text style={footerTextStyle}>
-                © {new Date().getFullYear()} Relay &middot; Sent because an
-                action was taken on your account.
-              </Text>
-            </Section>
-          </Container>
-        </Body>
-      </Html>
-    </Tailwind>
+          <Section style={footerStyle}>
+            <Text style={footerTextStyle}>
+              &copy; {new Date().getFullYear()} Relay &middot; Sent because an
+              action was taken on your account.
+            </Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
   );
 }
 
@@ -77,7 +71,7 @@ const wordmarkStyle: React.CSSProperties = {
   margin: "0",
 };
 
-const cardStyle: React.CSSProperties = {
+const contentStyle: React.CSSProperties = {
   fontFamily: sans,
 };
 

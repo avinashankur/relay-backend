@@ -17,7 +17,7 @@ export async function sendPasswordReset(
     from: env.EMAIL_FROM,
     to: email,
     subject: "Reset your password",
-    react: PasswordResetEmail({ resetUrl }),
+    react: PasswordResetEmail({ resetUrl, recipientEmail: email }),
   });
 
   if (error) {

@@ -6,7 +6,9 @@ interface ButtonProps {
   variant?: "primary" | "danger";
 }
 
-// Note: Do not use tailwind or any external CSS framework here for better compatibility.
+const sans =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
 export function Button({ href, children, variant = "primary" }: ButtonProps) {
   return (
     <EmailButton
@@ -19,6 +21,7 @@ export function Button({ href, children, variant = "primary" }: ButtonProps) {
 }
 
 const base: React.CSSProperties = {
+  fontFamily: sans,
   display: "inline-block",
   borderRadius: "8px",
   padding: "12px 28px",
@@ -27,7 +30,6 @@ const base: React.CSSProperties = {
   letterSpacing: "0.01em",
   textDecoration: "none",
   textAlign: "center",
-  cursor: "pointer",
 };
 
 const primaryStyle: React.CSSProperties = {

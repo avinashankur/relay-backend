@@ -26,6 +26,7 @@ export async function sendSecurityAlert(
     subject: SUBJECTS[alertType],
     react: SecurityAlertEmail({
       alertType,
+      recipientEmail: email,
       ip,
       userAgent,
       revokeUrl,
