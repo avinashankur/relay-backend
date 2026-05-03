@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import {
   emailVerifySchema,
+  emailVerifyQuerySchema,
   loginSchema,
   magicLinkCallbackQuerySchema,
   magicLinkRequestSchema,
@@ -207,7 +208,7 @@ export class AuthController {
     }
   };
 
-  // POST /auth/password/reset-request
+  // POST /auth/password-reset/request
   // Always returns 200, no email enumeration
   passwordResetRequest = async (
     req: Request,
@@ -224,7 +225,7 @@ export class AuthController {
     }
   };
 
-  // POST /auth/password/reset
+  // POST /auth/password-reset
   // Applies new password, revokes all sessions
   passwordReset = async (
     req: Request,
@@ -248,6 +249,23 @@ export class AuthController {
       const body = parse(emailVerifySchema, req.body);
 
       await this.authService.verifyEmail(body.token);
+      res.status(200).json(success(null));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // GET /auth/verify-email?token=...
+  // Clickable verification-email callback.
+  verifyEmailFromLink = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const query = parse(emailVerifyQuerySchema, req.query);
+
+      await this.authService.verifyEmail(query.token);
       res.status(200).json(success(null));
     } catch (error) {
       next(error);

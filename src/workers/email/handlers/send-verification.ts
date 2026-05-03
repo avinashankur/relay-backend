@@ -11,7 +11,7 @@ export async function sendVerification(
 ): Promise<void> {
   const { userId, email, token } = data;
 
-  const verificationUrl = `${env.API_BASE_URL}/api/v1/auth/email/verify?token=${token}`;
+  const verificationUrl = `${env.API_BASE_URL}/api/v1/auth/verify-email?token=${token}`;
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,

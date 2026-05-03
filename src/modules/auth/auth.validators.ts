@@ -136,6 +136,14 @@ export const emailVerifySchema = z
 
 export type EmailVerifyInput = z.infer<typeof emailVerifySchema>;
 
+export const emailVerifyQuerySchema = z
+  .object({
+    token: tokenSchema,
+  })
+  .strict();
+
+export type EmailVerifyQueryInput = z.infer<typeof emailVerifyQuerySchema>;
+
 // Resend Verification Email
 export const resendVerificationSchema = z
   .object({

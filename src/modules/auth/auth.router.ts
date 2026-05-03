@@ -103,6 +103,9 @@ export function createAuthRouter(
   // POST /auth/password-reset
   router.post("/password-reset", requireJsonBody, ctrl.passwordReset);
 
+  // GET /auth/verify-email?token=...
+  router.get("/verify-email", ctrl.verifyEmailFromLink);
+
   // POST /auth/verify-email
   router.post("/verify-email", requireJsonBody, ctrl.verifyEmail);
 

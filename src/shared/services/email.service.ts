@@ -32,13 +32,13 @@ export class EmailService {
 
   /**
    * Enqueue a verification email for a newly signed-up user.
-   * The link in the email hits POST /auth/email/verify?token={raw_token}
+   * The link in the email hits GET /auth/verify-email?token={raw_token}
    */
   async sendVerificationEmail(
     payload: SendVerificationJobData,
   ): Promise<string> {
     const job = await this.queue.add(
-      "send-verification",
+      EmailJobName.SendVerification,
       payload,
       DEFAULT_JOB_OPTIONS,
     );
@@ -55,7 +55,7 @@ export class EmailService {
    */
   async sendMagicLink(payload: SendMagicLinkJobData): Promise<string> {
     const job = await this.queue.add(
-      "send-magic-link",
+      EmailJobName.SendMagicLink,
       payload,
       DEFAULT_JOB_OPTIONS,
     );
@@ -71,7 +71,11 @@ export class EmailService {
    * The 6-digit code is included directly in the email body.
    */
   async sendOtp(payload: SendOtpJobData): Promise<string> {
-    const job = await this.queue.add("send-otp", payload, DEFAULT_JOB_OPTIONS);
+    const job = await this.queue.add(
+      EmailJobName.SendOtp,
+      payload,
+      DEFAULT_JOB_OPTIONS,
+    );
     logger.info(
       { jobId: job.id, email: payload.email },
       "Enqueued send-otp email job",
@@ -81,11 +85,11 @@ export class EmailService {
 
   /**
    * Enqueue a password reset email.
-   * The link hits POST /auth/password/reset with token + new password.
+   * The link carries a token for POST /auth/password-reset with a new password.
    */
   async sendPasswordReset(payload: SendPasswordResetJobData): Promise<string> {
     const job = await this.queue.add(
-      "send-password-reset",
+      EmailJobName.SendPasswordReset,
       payload,
       DEFAULT_JOB_OPTIONS,
     );
@@ -101,7 +105,7 @@ export class EmailService {
    */
   async sendSecurityAlert(payload: SendSecurityAlertJobData): Promise<string> {
     const job = await this.queue.add(
-      "send-security-alert",
+      EmailJobName.SendSecurityAlert,
       payload,
       CRITICAL_JOB_OPTIONS,
     );

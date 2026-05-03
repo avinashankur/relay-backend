@@ -544,6 +544,39 @@ Mark a user's email as verified using the token from the verification email.
 
 ---
 
+### `GET /api/v1/auth/verify-email?token=<raw>`
+
+Clickable verification-email callback. Performs the same verification side
+effects as `POST /api/v1/auth/verify-email`, but reads the token from the query
+string so the email CTA can be opened directly from an inbox.
+
+**Rate limit:** None.
+
+**Request:** Query parameter `token` (string, required). No body.
+
+**Success — `200`:**
+
+```jsonc
+{ "success": true, "data": null }
+```
+
+**Cookies set:** None.
+
+**Side effects:**
+
+- Deletes Redis key immediately (single-use).
+- Sets `User.emailVerified = true`.
+- Logs `auth.email_verified` audit event.
+
+**Error cases:**
+
+| HTTP | Code               | Condition                                    |
+| ---- | ------------------ | -------------------------------------------- |
+| 422  | `VALIDATION_ERROR` | `token` query param missing                  |
+| 401  | `INVALID_TOKEN`    | Token not in Redis (expired or already used) |
+
+---
+
 ### `POST /api/v1/auth/resend-verification`
 
 Resend the verification email. Always returns `200` (prevents enumeration).

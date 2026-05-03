@@ -603,9 +603,10 @@ model OrgInvite {
 | POST   | `/auth/otp/verify`               | Verify OTP, create session                   | No            | 5 attempts max    |
 | GET    | `/auth/oauth/:provider`          | Redirect to OAuth provider                   | No            | -                 |
 | GET    | `/auth/oauth/:provider/callback` | Handle OAuth callback                        | No            | -                 |
-| POST   | `/auth/password/reset-request`   | Send password reset email                    | No            | 3/hour per email  |
-| POST   | `/auth/password/reset`           | Apply new password using token               | No            | -                 |
-| POST   | `/auth/email/verify`             | Verify email with token                      | No            | -                 |
+| POST   | `/auth/password-reset/request`   | Send password reset email                    | No            | 3/hour per email  |
+| POST   | `/auth/password-reset`           | Apply new password using token               | No            | -                 |
+| GET    | `/auth/verify-email`             | Verify email from inbox link                 | No            | -                 |
+| POST   | `/auth/verify-email`             | Verify email with token                      | No            | -                 |
 
 ### User & Session Endpoints
 
@@ -709,7 +710,7 @@ Set-Cookie: refresh_token=<opaque>;
 | `POST /auth/otp/*`                  | 5 attempts    | per email per 10 min | Lock OTP, require re-request       |
 | `POST /auth/magic-link`             | 3 requests    | per email per 5 min  | HTTP 429                           |
 | `POST /auth/signup`                 | 10 requests   | per IP per hour      | HTTP 429                           |
-| `POST /auth/password/reset-request` | 3 requests    | per email per hour   | Always return 200 (no enumeration) |
+| `POST /auth/password-reset/request` | 3 requests    | per email per hour   | Always return 200 (no enumeration) |
 | Global API                          | 1000 requests | per IP per minute    | HTTP 429                           |
 
 **Implementation**: Redis-backed sliding window algorithm
