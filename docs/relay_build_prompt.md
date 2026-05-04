@@ -1,5 +1,11 @@
 # Enterprise-Grade Multi-Tenant Identity Platform - Build Specification
 
+> **Note on Implementation Status**:
+> This document serves as the **foundational planning specification** and **target-state build prompt** for the Relay project.
+> It outlines the comprehensive vision for an enterprise-grade identity platform.
+> **Important:** Many features described here (e.g., full OAuth, multi-org support, advanced infrastructure, full CI/CD) represent **future-state goals** rather than currently implemented behavior.
+> For the truthful current implementation status, refer to `TODO.md` and the existing codebase.
+
 ## Project Overview
 
 Build a production-ready, multi-tenant identity and authentication backend platform that serves as the central authentication and authorization layer for modern web applications. This is an **industry-standard, enterprise-grade system** that must demonstrate professional software engineering practices, security-first design, and production deployment readiness.

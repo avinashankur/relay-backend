@@ -1,3 +1,19 @@
+# Architecture & Repository Structure
+
+> **Note on Implementation Status**:
+> This document describes the **target architecture** of the Relay project.
+> While much of the core API and domain logic in `src/` is currently implemented, several areas are **planned future-state goals** and do not exist in the repository yet.
+>
+> Specifically, the following areas are **not yet implemented**:
+>
+> - `infra/` (Terraform, Docker deployments)
+> - `.github/workflows/` (CI/CD pipelines)
+> - Many of the operational and architectural docs in `docs/adr/`
+> - E2E tests in `tests/e2e/`
+>
+> The directory tree below illustrates where these components will live once built.
+
+```text
 relay/
 │
 ├── .github/
@@ -197,3 +213,4 @@ relay/
 ├── tsconfig.json # strict mode
 ├── tsconfig.build.json # excludes tests from production build
 └── package.json
+```
