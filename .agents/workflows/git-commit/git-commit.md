@@ -55,6 +55,12 @@ Determine if a scope applies:
 - Feature area (e.g., `login`, `dashboard`)
 - File type (e.g., `deps`, `config`)
 
+### 4. Identify TODO tag (Optional)
+
+If a TODO is marked as done in the TODO.md, add todo tag in the commit msg.
+Format: `<type>(<scope>): <description> [TODO tag]`
+Example: docs(env): add example environment config [DOCS-03]
+
 ### 4. Write Commit Message
 
 Format: `<type>(<scope>): <description>`

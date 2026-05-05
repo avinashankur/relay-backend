@@ -106,7 +106,7 @@ Goal: align repo documentation with the actual system boundary and make the proj
 
 - [x] `DOCS-01` `P1` `Done` Rewrite architecture and planning docs to distinguish clearly between implemented behavior and future-state goals.
 - [ ] `DOCS-02` `P1` `Not started` Add a root `README.md` with local setup, required services, scripts, and a truthful implementation status summary.
-- [ ] `DOCS-03` `P1` `Not started` Add a `.env.example` that reflects the current validated environment contract without shipping real secrets.
+- [x] `DOCS-03` `P1` `Done` Add a `.env.example` that reflects the current validated environment contract without shipping real secrets.
 - [ ] `DOCS-04` `P2` `Not started` Keep deployment and infrastructure work tracked as future backlog items, but stop presenting them as if they already exist in-repo.
 - [ ] `DOCS-05` `P2` `Not started` Add an observability backlog covering Sentry wiring, request IDs, metrics, and an incident runbook once the API surface is stable.
 
