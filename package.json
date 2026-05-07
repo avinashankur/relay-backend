@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "dev:worker": "tsx watch src/worker.ts",
     "build": "tsc && tsc-alias -f -fe .js",
+    "start": "node dist/server.js",
+    "start:worker": "node dist/worker.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check",
     "format:fix": "prettier --write",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./jest.config.cjs --selectProjects unit",
+    "typecheck": "tsc --noEmit",
     "script:send-demo-email": "tsx --tsconfig tsconfig.json scripts/send-demo-email.ts"
   },
   "keywords": [],
