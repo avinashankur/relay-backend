@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { logger } from "@/config/logger";
 import PasswordResetEmail from "@/emails/PasswordResetEmail";
 import type { SendPasswordResetJobData } from "../email.queue";
+import { throwResendError } from "./resend-error";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -25,7 +26,7 @@ export async function sendPasswordReset(
       { userId, email, error },
       "Resend failed: send-password-reset",
     );
-    throw new Error(`Resend error: ${error.message}`);
+    throwResendError(error, { userId, email, jobName: "send-password-reset" });
   }
 
   logger.info({ userId, email }, "Password reset email sent");

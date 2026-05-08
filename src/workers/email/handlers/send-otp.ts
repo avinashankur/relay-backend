@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { OtpEmail } from "@/emails/OtpEmail";
 import { logger } from "@/config/logger";
 import type { SendOtpJobData } from "../email.queue";
+import { throwResendError } from "./resend-error";
 
 const resend = new Resend(env.RESEND_API_KEY);
 export async function sendOtp(data: SendOtpJobData): Promise<void> {
@@ -17,7 +18,7 @@ export async function sendOtp(data: SendOtpJobData): Promise<void> {
 
   if (error) {
     logger.error({ email, error }, "Resend failed: send-otp");
-    throw new Error(`Resend error: ${error.message}`);
+    throwResendError(error, { email, jobName: "send-otp" });
   }
 
   logger.info({ email }, "OTP email sent");

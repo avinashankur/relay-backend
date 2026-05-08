@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { logger } from "@/config/logger";
 import { MagicLinkEmail } from "@/emails/MagicLinkEmail";
 import type { SendMagicLinkJobData } from "../email.queue";
+import { throwResendError } from "./resend-error";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -20,7 +21,7 @@ export async function sendMagicLink(data: SendMagicLinkJobData): Promise<void> {
 
   if (error) {
     logger.error({ email, error }, "Resend failed: send-magic-link");
-    throw new Error(`Resend error: ${error.message}`);
+    throwResendError(error, { email, jobName: "send-magic-link" });
   }
 
   logger.info({ email }, "Magic link email sent");

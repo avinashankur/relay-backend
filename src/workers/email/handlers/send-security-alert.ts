@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { logger } from "@/config/logger";
 import SecurityAlertEmail from "@/emails/SecurityAlertEmail";
 import type { SendSecurityAlertJobData } from "../email.queue";
+import { throwResendError } from "./resend-error";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -39,7 +40,12 @@ export async function sendSecurityAlert(
       { userId, email, alertType, error },
       "Resend failed: send-security-alert",
     );
-    throw new Error(`Resend error: ${error.message}`);
+    throwResendError(error, {
+      userId,
+      email,
+      alertType,
+      jobName: "send-security-alert",
+    });
   }
 
   logger.warn({ userId, email, alertType }, "Security alert email sent");

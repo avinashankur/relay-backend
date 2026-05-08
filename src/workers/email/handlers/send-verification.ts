@@ -3,6 +3,7 @@ import { env } from "@/config/env";
 import { logger } from "@/config/logger";
 import type { SendVerificationJobData } from "../email.queue";
 import SignupVerificationEmail from "@/emails/SignupVerificationEmail";
+import { throwResendError } from "./resend-error";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -25,7 +26,7 @@ export async function sendVerification(
       { userId, email, error },
       "Resend failed to send verification email",
     );
-    throw new Error(`Resend error: ${error.message}`);
+    throwResendError(error, { userId, email, jobName: "send-verification" });
   }
 
   logger.info({ userId, email }, "Verification email sent");

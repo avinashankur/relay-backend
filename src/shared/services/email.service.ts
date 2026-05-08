@@ -1,6 +1,8 @@
 import {
   emailQueue,
   EmailJobName,
+  EMAIL_JOB_OPTIONS_DEFAULT,
+  EMAIL_JOB_OPTIONS_CRITICAL,
   type SendVerificationJobData,
   type SendMagicLinkJobData,
   type SendOtpJobData,
@@ -11,21 +13,9 @@ import {
 import type { Queue } from "bullmq";
 import { logger } from "@/config/logger";
 
-const DEFAULT_JOB_OPTIONS = {
-  attempts: 3,
-  backoff: {
-    type: "exponential" as const,
-    delay: 1_000,
-  },
-  removeOnComplete: { count: 100 },
-  removeOnFail: { count: 500 },
-};
-
-const CRITICAL_JOB_OPTIONS = {
-  ...DEFAULT_JOB_OPTIONS,
-  attempts: 5,
-  priority: 1,
-};
+// Job option constants live in email.queue.ts — EMAIL_JOB_OPTIONS_DEFAULT and
+// EMAIL_JOB_OPTIONS_CRITICAL are imported above. Do not define them here.
+// See TODO.md [EMAIL-04].
 
 export class EmailService {
   constructor(private readonly queue: Queue = emailQueue) {}
@@ -40,7 +30,7 @@ export class EmailService {
     const job = await this.queue.add(
       EmailJobName.SendVerification,
       payload,
-      DEFAULT_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_DEFAULT,
     );
     logger.info(
       { jobId: job.id, userId: payload.userId, email: payload.email },
@@ -57,7 +47,7 @@ export class EmailService {
     const job = await this.queue.add(
       EmailJobName.SendMagicLink,
       payload,
-      DEFAULT_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_DEFAULT,
     );
     logger.info(
       { jobId: job.id, email: payload.email },
@@ -74,7 +64,7 @@ export class EmailService {
     const job = await this.queue.add(
       EmailJobName.SendOtp,
       payload,
-      DEFAULT_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_DEFAULT,
     );
     logger.info(
       { jobId: job.id, email: payload.email },
@@ -91,7 +81,7 @@ export class EmailService {
     const job = await this.queue.add(
       EmailJobName.SendPasswordReset,
       payload,
-      DEFAULT_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_DEFAULT,
     );
     logger.info(
       { jobId: job.id, userId: payload.userId, email: payload.email },
@@ -101,13 +91,13 @@ export class EmailService {
   }
 
   /**
-   * Enqueue a security alert email (CRITICAL priority, 5 retries).
+   * Enqueue a security alert email (CRITICAL priority, 6 retries).
    */
   async sendSecurityAlert(payload: SendSecurityAlertJobData): Promise<string> {
     const job = await this.queue.add(
       EmailJobName.SendSecurityAlert,
       payload,
-      CRITICAL_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_CRITICAL,
     );
     logger.warn(
       {
@@ -128,7 +118,7 @@ export class EmailService {
     const job = await this.queue.add(
       EmailJobName.SendDemo,
       payload,
-      DEFAULT_JOB_OPTIONS,
+      EMAIL_JOB_OPTIONS_DEFAULT,
     );
     logger.info(
       { jobId: job.id, email: payload.email },

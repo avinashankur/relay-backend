@@ -86,7 +86,7 @@ Goal: make outbound email flows production-grade and operationally reliable.
 - [x] `EMAIL-01` `P1` `Done` Upgrade React Email templates to production quality with consistent branding, better copy, stronger fallback text, and clean CTA language.
 - [x] `EMAIL-02` `P1` `Done` Verify every required email flow is present and wired end-to-end: verification, magic link, OTP, password reset, and security alerts.
 - [x] `EMAIL-03` `P1` `Done` Separate API and worker entrypoints cleanly so background jobs can run as an independent process/container with explicit startup and shutdown behavior.
-- [ ] `EMAIL-04` `P1` `Not started` Define retry, backoff, dead-letter, and alerting expectations for BullMQ email jobs instead of relying on default queue behavior.
+- [x] `EMAIL-04` `P1` `Done` Define retry, backoff, dead-letter, and alerting expectations for BullMQ email jobs instead of relying on default queue behavior.
 - [ ] `EMAIL-05` `P2` `Not started` Add operational checks around queue health, stuck jobs, and handler-level logging so email failures are diagnosable without code spelunking.
 
 ### 5. Testing And Quality Gates
