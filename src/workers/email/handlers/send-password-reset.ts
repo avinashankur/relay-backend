@@ -1,6 +1,6 @@
 import { env } from "@/config/env";
 import { Resend } from "resend";
-import { logger } from "@/config/logger";
+import type { Logger } from "pino";
 import PasswordResetEmail from "@/emails/PasswordResetEmail";
 import type { SendPasswordResetJobData } from "../email.queue";
 import { throwResendError } from "./resend-error";
@@ -9,10 +9,13 @@ const resend = new Resend(env.RESEND_API_KEY);
 
 export async function sendPasswordReset(
   data: SendPasswordResetJobData,
+  log: Logger,
 ): Promise<void> {
   const { userId, email, token } = data;
 
   const resetUrl = `${env.API_BASE_URL}/api/v1/auth/password-reset?token=${token}`;
+
+  log.info({ userId }, "Sending password reset email");
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,
@@ -22,12 +25,9 @@ export async function sendPasswordReset(
   });
 
   if (error) {
-    logger.error(
-      { userId, email, error },
-      "Resend failed: send-password-reset",
-    );
+    log.error({ userId, error }, "Resend failed: send-password-reset");
     throwResendError(error, { userId, email, jobName: "send-password-reset" });
   }
 
-  logger.info({ userId, email }, "Password reset email sent");
+  log.info({ userId }, "Password reset email sent");
 }

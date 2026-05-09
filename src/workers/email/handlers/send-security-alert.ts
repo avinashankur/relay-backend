@@ -1,6 +1,6 @@
 import { env } from "@/config/env";
 import { Resend } from "resend";
-import { logger } from "@/config/logger";
+import type { Logger } from "pino";
 import SecurityAlertEmail from "@/emails/SecurityAlertEmail";
 import type { SendSecurityAlertJobData } from "../email.queue";
 import { throwResendError } from "./resend-error";
@@ -16,10 +16,13 @@ const SUBJECTS: Record<SendSecurityAlertJobData["alertType"], string> = {
 
 export async function sendSecurityAlert(
   data: SendSecurityAlertJobData,
+  log: Logger,
 ): Promise<void> {
   const { userId, email, ip, userAgent, alertType, scheduledAt } = data;
 
   const revokeUrl = `${env.API_BASE_URL}/api/v1/sessions`;
+
+  log.info({ userId, alertType }, "Sending security alert email");
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,
@@ -36,8 +39,8 @@ export async function sendSecurityAlert(
   });
 
   if (error) {
-    logger.error(
-      { userId, email, alertType, error },
+    log.error(
+      { userId, alertType, error },
       "Resend failed: send-security-alert",
     );
     throwResendError(error, {
@@ -48,5 +51,5 @@ export async function sendSecurityAlert(
     });
   }
 
-  logger.warn({ userId, email, alertType }, "Security alert email sent");
+  log.warn({ userId, alertType }, "Security alert email sent");
 }

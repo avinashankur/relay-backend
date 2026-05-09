@@ -19,10 +19,17 @@
  *    Final failure (all attempts exhausted): Sentry exception + logger.fatal.
  *    Stalled job (lock timeout): logger.error + Sentry message.
  *    Worker-level connection error: logger.error (does not kill the process).
+ *
+ * Operational observability (See TODO.md [EMAIL-05]):
+ *
+ *  Handler-level logging
+ *    Each job gets a child logger bound with { jobId, queue, jobName, attempt }
+ *    that is threaded into the handler. Every log line from a handler therefore
+ *    carries those correlation IDs automatically — no spelunking required.
  */
 import { Job, UnrecoverableError, Worker } from "bullmq";
 import { redisConnection } from "@/config/redis";
-import { logger } from "@/config/logger";
+import { jobLogger, logger } from "@/config/logger";
 import * as Sentry from "@sentry/node";
 
 import {
@@ -64,34 +71,42 @@ function emailBackoffStrategy(attemptsMade: number): number {
 
 // ── Job processor ─────────────────────────────────────────────────────────────
 async function processEmailJob(job: Job): Promise<void> {
-  logger.info(
-    { jobId: job.id, jobName: job.name, attempt: job.attemptsMade + 1 },
-    "Processing email job",
-  );
+  // Build a per-job child logger so every log line emitted by this function
+  // AND by the handler it dispatches to automatically carries jobId, queue,
+  // jobName, and the current attempt number as structured fields.
+  // See TODO.md [EMAIL-05].
+  const log = jobLogger({
+    jobId: job.id,
+    queue: EMAIL_QUEUE_NAME,
+    jobName: job.name,
+    attempt: job.attemptsMade + 1,
+  });
+
+  log.info("Email job started");
 
   switch (job.name) {
     case EmailJobName.SendVerification:
-      await sendVerification(job.data as SendVerificationJobData);
+      await sendVerification(job.data as SendVerificationJobData, log);
       break;
 
     case EmailJobName.SendMagicLink:
-      await sendMagicLink(job.data as SendMagicLinkJobData);
+      await sendMagicLink(job.data as SendMagicLinkJobData, log);
       break;
 
     case EmailJobName.SendOtp:
-      await sendOtp(job.data as SendOtpJobData);
+      await sendOtp(job.data as SendOtpJobData, log);
       break;
 
     case EmailJobName.SendPasswordReset:
-      await sendPasswordReset(job.data as SendPasswordResetJobData);
+      await sendPasswordReset(job.data as SendPasswordResetJobData, log);
       break;
 
     case EmailJobName.SendSecurityAlert:
-      await sendSecurityAlert(job.data as SendSecurityAlertJobData);
+      await sendSecurityAlert(job.data as SendSecurityAlertJobData, log);
       break;
 
     case EmailJobName.SendDemo:
-      await sendDemoEmail(job.data as SendDemoJobData);
+      await sendDemoEmail(job.data as SendDemoJobData, log);
       break;
 
     default:
@@ -99,7 +114,7 @@ async function processEmailJob(job: Job): Promise<void> {
       throw new UnrecoverableError(`Unknown email job name: ${job.name}`);
   }
 
-  logger.info({ jobId: job.id, jobName: job.name }, "Email job completed");
+  log.info("Email job completed");
 }
 
 // ── Worker ────────────────────────────────────────────────────────────────────

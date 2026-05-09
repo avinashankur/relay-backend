@@ -27,6 +27,7 @@ import {
   shutdownCleanupWorker,
 } from "./workers/cleanup/cleanup.worker";
 import { createCleanupQueue } from "./workers/cleanup/cleanup.queue";
+import { startQueueHealthLogger } from "./workers/queue-health";
 
 // ── Validate required environment variables ──────────────────────────────────
 const REQUIRED_ENV = [
@@ -79,6 +80,21 @@ logger.info(
   "Worker process started — email and cleanup workers running",
 );
 
+// ── Periodic queue health logger ──────────────────────────────────────────────
+// Emits a structured queue-health snapshot log every 5 minutes so operators
+// can spot queue growth, stuck active jobs, or dead-letter accumulation from
+// CloudWatch / ELK without tailing raw BullMQ events.
+// See TODO.md [EMAIL-05].
+const QUEUE_HEALTH_INTERVAL_MS = 5 * 60 * 1_000; // 5 minutes
+const stopQueueHealthLogger = startQueueHealthLogger(
+  [emailQueue, cleanupQueue],
+  QUEUE_HEALTH_INTERVAL_MS,
+  {
+    failedWarnThreshold: 50, // warn when dead-letter set exceeds 50 jobs
+    activeWarnThreshold: 20, // warn when active count suggests saturation
+  },
+);
+
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 /**
  * Shutdown order:
@@ -96,6 +112,9 @@ async function shutdown(signal: string): Promise<void> {
   }, 30_000); // workers may be draining long-running jobs — allow 30 s
 
   try {
+    // 0. Stop the health-check timer so it cannot fire after queues close.
+    stopQueueHealthLogger();
+
     // 1. Drain workers (wait for any active job to complete).
     await shutdownEmailWorker();
     await shutdownCleanupWorker(cleanupWorker);

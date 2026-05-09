@@ -89,6 +89,8 @@ export interface JobContext {
   jobId: string | undefined;
   queue: string;
   jobName: string;
+  /** Current attempt number (1-based), if available. */
+  attempt?: number;
 }
 
 export function requestLogger(ctx: RequestContext): Logger {

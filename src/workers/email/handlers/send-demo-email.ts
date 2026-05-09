@@ -1,13 +1,18 @@
 import { env } from "@/config/env";
-import { logger } from "@/config/logger";
+import type { Logger } from "pino";
 import DemoEmail from "@/emails/DemoEmail";
 import { Resend } from "resend";
 import type { SendDemoJobData } from "../email.queue";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
-export async function sendDemoEmail(data: SendDemoJobData): Promise<void> {
+export async function sendDemoEmail(
+  data: SendDemoJobData,
+  log: Logger,
+): Promise<void> {
   const { email } = data;
+
+  log.info("Sending demo email");
 
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM,
@@ -17,9 +22,9 @@ export async function sendDemoEmail(data: SendDemoJobData): Promise<void> {
   });
 
   if (error) {
-    logger.error({ email, error }, "Resend failed: send-demo-email");
+    log.error({ error }, "Resend failed: send-demo-email");
     throw new Error(`Resend error: ${error.message}`);
   }
 
-  logger.info({ email }, "Demo email sent");
+  log.info("Demo email sent");
 }
