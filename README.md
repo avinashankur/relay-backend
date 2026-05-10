@@ -1,75 +1,87 @@
 # Relay
 
-Relay is a Node.js backend service built with TypeScript, Express, and Prisma. It provides a robust architecture for user authentication, session management, and related services.
+Relay is a TypeScript identity and authentication backend API built on Express 5, Prisma (PostgreSQL), Redis, BullMQ, and React Email.
 
-## Features
+## Implementation Status
 
-- **Authentication**: Multiple strategies including password and OTP.
-- **Session Management**: Secure session handling and cleanup via background workers.
-- **User Management**: User profiles and administration endpoints.
-- **Database**: PostgreSQL with Prisma ORM for type-safe database access.
-- **Caching & Background Jobs**: Redis integration for caching, rate-limiting, and processing background tasks (e.g., email sending, session cleanup).
-- **Email Generation**: Email templates built with React (`.tsx`).
+This repository is an active work-in-progress. It is **not** yet a fully deployable out-of-the-box solution, but rather an evolving authentication platform.
 
-## Tech Stack
+**What is currently implemented:**
 
-- **Runtime**: Node.js
-- **Language**: TypeScript
-- **Framework**: Express.js
-- **ORM**: Prisma
-- **Database**: PostgreSQL (assumed based on `pg` types)
-- **Testing**: Jest & Supertest
-- **Background Processing**: Redis / Custom Workers
+- **Core Auth API:** Signup, Login, Logout, Token Refresh (with rotation and reuse detection), Password Reset, Magic Links, OTP, and Email Verification.
+- **Session Management:** Robust JWT issuance, explicit database-backed session revocation, and security middleware for authenticated routes and role enforcement.
+- **Background Processing:** A dedicated BullMQ worker process handling transactional emails (via Resend) and periodic cleanup tasks, complete with custom backoff, dead-letter retention, and queue health monitoring.
+- **Infrastructure Integrations:** PostgreSQL (via Prisma) and Redis (via ioredis) with clean startup and graceful shutdown lifecycle management.
+- **Unit Tests:** Coverage for core domain services (`AuthService`, `SessionService`, `UserService`, `AdminService`).
 
-## Getting Started
+**What is pending/planned:**
 
-### Prerequisites
+- End-to-end integration tests backed by real databases.
+- Automated CI pipelines (linting, typechecking, tests).
+- Production deployment configurations and observability (Sentry, Datadog/metrics).
+- Broader platform capabilities (webhooks, multi-tenant features).
+  _See `TODO.md` for the comprehensive engineering backlog and roadmap._
 
-- Node.js (v18+)
-- PostgreSQL
-- Redis
+## Required Services
 
-### Installation
+To run Relay locally, you need the following external services available:
 
-1. Clone the repository
-2. Install dependencies:
+1. **PostgreSQL** (for application state)
+2. **Redis** (for session store, rate limiting, OTP cache, and BullMQ queues)
+3. **Resend API Key** (for transactional emails)
+4. **RSA Key Pair** (for JWT signing/verification)
+
+## Local Setup
+
+1. **Install dependencies:**
+
    ```bash
    npm install
    ```
-3. Set up your environment variables. Create a `.env` file based on the required configuration.
-4. Run database migrations:
+
+2. **Environment Configuration:**
+   Copy the example environment file and fill in your specific credentials.
+
    ```bash
-   npx prisma migrate dev
+   cp .env.example .env
    ```
 
-### Running the Application
+3. **Database Setup:**
+   Apply the Prisma schema to your local PostgreSQL instance and generate the client:
 
-- **Development Mode**:
-  ```bash
-  npm run dev
-  ```
-- **Production Build**:
-  ```bash
-  npm run build
-  npm start
-  ```
+   ```bash
+   npx prisma migrate dev
+   npx prisma generate
+   ```
 
-### Testing
+4. **Start the applications:**
+   Relay uses separate entry points for the API and background workers. You need to run both concurrently in local development.
 
-Run the test suite using Jest:
+   _In one terminal window (API):_
 
-```bash
-npm run test
-```
+   ```bash
+   npm run dev
+   ```
 
-## Project Structure
+   _In another terminal window (Worker):_
 
-- `src/modules/` - Feature-based modules (auth, users, sessions, admin).
-- `src/shared/` - Shared utilities, services, middleware, and errors.
-- `src/workers/` - Background job processors.
-- `src/emails/` - React-based email templates.
-- `docs/` - Architecture and system design documentation.
+   ```bash
+   npm run dev:worker
+   ```
 
-## License
+## Scripts
 
-ISC
+The following standard scripts are available:
+
+| Script                           | Description                                               |
+| -------------------------------- | --------------------------------------------------------- |
+| `npm run dev`                    | Starts the Express API server in watch mode               |
+| `npm run dev:worker`             | Starts the BullMQ background worker process in watch mode |
+| `npm run build`                  | Compiles TypeScript source to `dist/`                     |
+| `npm run start`                  | Runs the compiled API server (`dist/server.js`)           |
+| `npm run start:worker`           | Runs the compiled worker process (`dist/worker.js`)       |
+| `npm run typecheck`              | Verifies typings without emitting files                   |
+| `npm run test`                   | Executes Jest unit test suites                            |
+| `npm run lint`                   | Runs ESLint over the codebase                             |
+| `npm run format`                 | Runs Prettier formatting                                  |
+| `npm run script:send-demo-email` | Utility to test outbound email configurations             |
