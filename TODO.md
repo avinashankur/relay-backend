@@ -95,7 +95,7 @@ Goal: make the repo safe to change by adding executable verification around crit
 
 - [x] `TEST-01` `P0` `Done` Add a `typecheck` script and baseline test scripts to `package.json` so the project has first-class verification commands.
 - [x] `TEST-02` `P0` `Done` Introduce unit tests for `AuthService`, `SessionService`, `UserService`, `AdminService` and security-sensitive shared services with mocked external dependencies.
-- [ ] `TEST-03` `P0` `Not started` Add integration tests for signup, login, refresh, and email verification using real Prisma/Redis-backed flows where practical.
+- [x] `TEST-03` `P0` `Done` Add integration tests for signup, login, refresh, and email verification using real Prisma/Redis-backed flows where practical.
 - [ ] `TEST-04` `P0` `Not started` Cover the highest-risk cases first: token rotation, token reuse, duplicate signup, invalid credentials, and verification token expiry.
 - [ ] `TEST-05` `P1` `Not started` Add a minimum CI workflow that runs lint, typecheck, tests, and build on pull requests.
 - [ ] `TEST-06` `P1` `Not started` Define the minimum test data/setup strategy for Prisma and Redis so local and CI runs are reproducible.
@@ -105,10 +105,12 @@ Goal: make the repo safe to change by adding executable verification around crit
 Goal: align repo documentation with the actual system boundary and make the project operable by another engineer.
 
 - [x] `DOCS-01` `P1` `Done` Rewrite architecture and planning docs to distinguish clearly between implemented behavior and future-state goals.
-- [ ] `DOCS-02` `P1` `Not started` Add a root `README.md` with local setup, required services, scripts, and a truthful implementation status summary.
+- [x] `DOCS-02` `P1` `Done` Add a root `README.md` with local setup, required services, scripts, and a truthful implementation status summary.
 - [x] `DOCS-03` `P1` `Done` Add a `.env.example` that reflects the current validated environment contract without shipping real secrets.
-- [ ] `DOCS-04` `P2` `Not started` Keep deployment and infrastructure work tracked as future backlog items, but stop presenting them as if they already exist in-repo.
+- [x] `DOCS-04` `P2` `Blocked` Keep deployment and infrastructure work tracked as future backlog items, but stop presenting them as if they already exist in-repo.
 - [ ] `DOCS-05` `P2` `Not started` Add an observability backlog covering Sentry wiring, request IDs, metrics, and an incident runbook once the API surface is stable.
+- [ ] `DOCS-06` `P2` `Not started` Add Docker multi-stage builds and docker-compose setup for containerized local development and deployment.
+- [ ] `DOCS-07` `P2` `Not started` Create Terraform infrastructure-as-code for AWS/Cloud deployment (VPC, ECS/EC2, RDS, ElastiCache).
 
 ## Near-Term Milestones
 

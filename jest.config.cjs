@@ -34,14 +34,15 @@ const config = {
     {
       displayName: "integration",
       testMatch: ["<rootDir>/src/**/*.integration.test.ts"],
-      preset: "ts-jest",
+      preset: "ts-jest/presets/default-esm",
       testEnvironment: "node",
+      extensionsToTreatAsEsm: [".ts"],
       moduleNameMapper: {
         "^(\\.{1,2}/.*)\\.js$": "$1",
         "^@/(.*)\\.js$": "<rootDir>/src/$1",
         "^@/(.*)$": "<rootDir>/src/$1",
       },
-      // Integration hooks can be added when test infrastructure exists.
+      setupFiles: ["<rootDir>/jest.integration.env.cjs"],
       maxWorkers: 1,
       testTimeout: 30000,
     },
