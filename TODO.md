@@ -96,7 +96,7 @@ Goal: make the repo safe to change by adding executable verification around crit
 - [x] `TEST-01` `P0` `Done` Add a `typecheck` script and baseline test scripts to `package.json` so the project has first-class verification commands.
 - [x] `TEST-02` `P0` `Done` Introduce unit tests for `AuthService`, `SessionService`, `UserService`, `AdminService` and security-sensitive shared services with mocked external dependencies.
 - [x] `TEST-03` `P0` `Done` Add integration tests for signup, login, refresh, and email verification using real Prisma/Redis-backed flows where practical.
-- [ ] `TEST-04` `P0` `Not started` Cover the highest-risk cases first: token rotation, token reuse, duplicate signup, invalid credentials, and verification token expiry.
+- [ ] `TEST-04` `P0` `Blocked` Cover the highest-risk cases first: token rotation, token reuse, duplicate signup, invalid credentials, and verification token expiry.
 - [ ] `TEST-05` `P1` `Not started` Add a minimum CI workflow that runs lint, typecheck, tests, and build on pull requests.
 - [ ] `TEST-06` `P1` `Not started` Define the minimum test data/setup strategy for Prisma and Redis so local and CI runs are reproducible.
 
