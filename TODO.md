@@ -2,7 +2,7 @@
 
 ## Project Snapshot
 
-Relay is currently an early-stage TypeScript identity/auth backend built on Express 5, Prisma/Postgres, Redis, BullMQ, and React Email. The repo already includes `/health` and `/health/ready` endpoints, a working signup path, a Prisma schema for users/auth accounts/sessions/audit events, an email queue plus worker handlers, and core environment validation. Most of the broader identity-platform scope described in `docs/` is still target-state planning rather than implemented runtime behavior.
+Relay is a TypeScript identity and authentication backend built on Express 5, Prisma/Postgres, Redis, BullMQ, and React Email. The repository implements a complete Core Auth MVP featuring signup, login, session management, token rotation, password reset, magic links, OTP, and cross-app SSO capabilities. It includes comprehensive middleware for identity and role enforcement, robust background email processing with operational monitoring, and a full suite of integration tests. The project also features separated API and worker entrypoints with graceful shutdown and structured environmental configuration.
 
 ## Prioritization Legend
 
@@ -34,13 +34,11 @@ Cross-reference format in code comments: `See TODO.md [PREFIX-NN]`
 
 ## Current-State Gaps
 
-- The `AuthService`, `SessionService`, `UserService`, and `AdminService` have implementation and test coverage.
-- Several core endpoints are missing explicit controller/routing wire-ups, particularly in `auth` (login, logout, refresh, reset) and other domain modules (only `/auth/signup` is wired).
-- `package.json` has `test` scripts but lacks a fully-featured CI pipeline (no `.github/workflows/`).
-- Graceful shutdown is incomplete in `src/server.ts`; Prisma and Redis disconnect paths are commented out.
-- API and worker runtime boundaries are not cleanly separated into dedicated entrypoints/process contracts yet.
-- Email workers exist but lack production-grade retry, dead-letter, and operational configurations in BullMQ.
-- Three middleware functions (`parseToken`, `requireAuth`, `requireRole`, `requireSession`) are fully implemented and exported from `src/shared/middleware/index.ts`. A singleton `JwtService` is wired in `createApp` and injected into all router factories. The `parseToken` middleware accepts both cookie and `Authorization: Bearer` token sources, and propagates `sessionId` into `req.user`. The `requireSession` middleware enforces session liveness in the DB for sensitive routes (admin, sessions).
+- `package.json` has `test` and `typecheck` scripts, and core integration tests are implemented, but there are remaining gaps in testing high-risk auth flows (token rotation, reuse, etc.).
+- The project lacks a fully-featured CI pipeline (e.g., `.github/workflows/`) for automated verification on pull requests.
+- The local test data/setup strategy for Prisma and Redis is not fully defined to guarantee reproducible local and CI runs.
+- Production deployment configurations, containerized multi-stage builds, and infrastructure-as-code (Terraform) are missing.
+- Observability features like Sentry wiring, request IDs, metrics, and incident runbooks are pending.
 
 ## Delivery Backlog By Workstream
 
