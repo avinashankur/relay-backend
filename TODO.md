@@ -109,6 +109,7 @@ Goal: align repo documentation with the actual system boundary and make the proj
 - [ ] `DOCS-05` `P2` `Not started` Add an observability backlog covering Sentry wiring, request IDs, metrics, and an incident runbook once the API surface is stable.
 - [ ] `DOCS-06` `P2` `Not started` Add Docker multi-stage builds and docker-compose setup for containerized local development and deployment.
 - [ ] `DOCS-07` `P2` `Not started` Create Terraform infrastructure-as-code for AWS/Cloud deployment (VPC, ECS/EC2, RDS, ElastiCache).
+- [x] `DOCS-08` `P2` `Done` Add a Git workflow and CI/CD pipeline guide (`docs/git-cicd-workflow.md`) covering basics through Relay-specific practice for engineers new to CI/CD.
 
 ## Near-Term Milestones
 
