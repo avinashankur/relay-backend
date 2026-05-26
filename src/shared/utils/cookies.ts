@@ -26,7 +26,7 @@ export function setAuthCookies(res: Response, tokens: AuthTokens): void {
 
   res.cookie("refresh_token", refreshToken, {
     ...cookieOptions,
-    path: IS_PROD ? "/api/auth/v1/refresh" : "/", // Allow all paths in dev for easier debugging
+    path: IS_PROD ? "/api/v1/auth/refresh" : "/", // Allow all paths in dev for easier debugging
     maxAge: env.JWT_REFRESH_TTL_SECONDS * 1000,
   });
 }
@@ -46,6 +46,6 @@ export function clearAuthCookies(res: Response): void {
 
   res.clearCookie("refresh_token", {
     ...cookieOptions,
-    path: IS_PROD ? "/api/auth/v1/refresh" : "/",
+    path: IS_PROD ? "/api/v1/auth/refresh" : "/",
   });
 }

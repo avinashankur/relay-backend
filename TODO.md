@@ -65,6 +65,7 @@ Goal: turn the current signup-only surface into a coherent auth API module.
 - [x] `AUTH-06` `P1` `Done` Add OTP request and verify endpoints with bounded verification attempts and expiry handling.
 - [x] `AUTH-07` `P0` `Done` Complete request validation schemas for every auth endpoint and make controller error responses consistent with the shared error model; most auth flows have schemas, but validation and controller behavior still diverge in places, including refresh/logout cookie handling and verification route semantics.
 - [x] `AUTH-08` `P1` `Done` Document expected cookie and token behavior for each auth endpoint so frontend and test implementations have a stable contract; see `docs/auth-contract.md` for the canonical per-endpoint reference.
+- [x] `AUTH-09` `P1` `Done` Fix production refresh_token cookie path mismatch in cookies.ts to match the mounted route path.
 
 ### 3. Session And Security Hardening
 
