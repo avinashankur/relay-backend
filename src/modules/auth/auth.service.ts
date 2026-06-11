@@ -1,4 +1,4 @@
-import type { PrismaClient, User } from "../../generated/prisma/client.js";
+import type { PrismaClient, User } from "@/generated/prisma/client.js";
 import { ValidationError } from "@/shared/errors/ValidationError";
 import type { PasswordStrategy } from "./strategies/password.strategy.js";
 import type { AuditService } from "@/shared/services/audit.service.js";

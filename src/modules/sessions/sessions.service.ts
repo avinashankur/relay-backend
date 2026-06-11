@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient, type Session } from "@/generated/prisma/client";
 import { AuthError } from "@/shared/errors/AuthError";
 import { ForbiddenError } from "@/shared/errors/ForbiddenError";
 import { AuditService } from "@/shared/services/audit.service";
@@ -243,7 +243,9 @@ export class SessionService {
     });
 
     await Promise.all(
-      sessions.map((s) => this.redisService.del(redisKey(s.refreshTokenHash))),
+      sessions.map((s: Session) =>
+        this.redisService.del(redisKey(s.refreshTokenHash)),
+      ),
     );
 
     await this.auditService.log({
