@@ -69,6 +69,63 @@ To run Relay locally, you need the following external services available:
    npm run dev:worker
    ```
 
+## Docker Setup
+
+You can run the entire local development stack (API, Worker, PostgreSQL, and Redis) containerized using Docker and Docker Compose.
+
+### Prerequisites
+
+1. Ensure [Docker](https://www.docker.com/) and Docker Compose are installed and running.
+2. Initialize your local environment file (Docker Compose will load these environment variables):
+   ```bash
+   cp .env.example .env
+   ```
+
+### 1. Build and Start the Stack
+
+Run the following command from the repository root:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml up --build
+```
+
+This will build the API and worker images, pull infrastructure images, and spin up four services:
+- **postgres**: PostgreSQL database mapped to port `5432` on localhost.
+- **redis**: Redis instance mapped to port `6379` on localhost.
+- **api**: Express 5 HTTP API server running at `http://localhost:5000`.
+- **worker**: BullMQ background email worker process.
+
+### 2. Apply Database Migrations
+
+Before using the application, apply the database schema migrations inside the running API container:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml run --rm api npx prisma migrate deploy
+```
+
+### 3. Alternative Workflow: Docker Infra + Native App (Recommended for Active Development)
+
+Rebuilding Docker images on every code change can slow down your inner loop. The recommended setup is to run the database and Redis services in Docker, but run the application processes natively on your host machine to benefit from `tsx watch` hot-reloads:
+
+1. **Spin up PostgreSQL & Redis only:**
+   ```bash
+   docker compose -f infra/docker/docker-compose.yml up postgres redis
+   ```
+2. **Apply migrations and start the API server:**
+   ```bash
+   npx prisma migrate dev
+   npm run dev
+   ```
+3. **Start the background worker:**
+   ```bash
+   npm run dev:worker
+   ```
+
+> [!NOTE]
+> For this workflow, make sure your `.env` contains `DATABASE_URL=postgresql://relay:relay@localhost:5432/relay_dev` and `REDIS_URL=redis://localhost:6379`. The Docker Compose file overrides these environment variables to use container hostnames (`postgres` and `redis`) *only* inside the containerized API and worker services.
+
+For advanced commands, custom configurations, production image build guidelines, and AWS-ready secrets patterns, refer to the [Docker Design & Operations Guide](file:///e:/projects/relay/docs/docker.md).
+
 ## Scripts
 
 The following standard scripts are available:

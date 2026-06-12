@@ -1,7 +1,6 @@
 # Docker: Multi-Stage Builds & Local Development
 
-> **Status**: Design guide — `Dockerfile`, `Dockerfile.worker`, and `docker-compose.yml` are **not yet created** in the repo.
-> This document describes the intended layout and usage. See `TODO.md [DOCS-06]`.
+> **Status**: Completed — `Dockerfile`, `Dockerfile.worker`, and `docker-compose.yml` are implemented in `infra/docker/`. See `TODO.md [DOCS-06]`.
 
 ---
 
@@ -18,7 +17,8 @@ Both share the same codebase, the same TypeScript build, and the same set of env
 
 ---
 
-## Planned File Layout
+## File Layout
+
 
 ```
 relay/
