@@ -1,0 +1,37 @@
+# Dependencies — reinstalled inside the image via npm ci
+node_modules
+
+# Compiled output — rebuilt inside the image via npm run build
+dist
+
+# Git history — not needed in the image
+.git
+.github
+.husky
+.agents
+
+# Local environment secrets — never bake into an image
+.env
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Test artefacts
+coverage
+*.test.ts
+*.spec.ts
+jest.config.cjs
+jest.integration.env.cjs
+
+# Dev tooling config — not needed at runtime
+# NOTE: tsconfig.json must NOT be excluded — the builder stage needs it for
+# both `tsc` (npm run build) and `tsx` (prisma.config.ts at prisma generate time)
+eslint.config.ts
+.prettierrc
+
+# Docs
+docs
+README.md

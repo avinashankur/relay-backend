@@ -277,6 +277,89 @@ docker push <registry>/relay-api:<tag>
 
 ---
 
+## How to Run
+
+### Dev Mode — infra in Docker, app running natively (recommended)
+
+The recommended inner-loop is **infra in Docker, app running natively** — you get `tsx watch` hot-reload and skip rebuilding the image on every change.
+
+```bash
+# Terminal 1 — spin up postgres + redis only
+docker compose -f infra/docker/docker-compose.yml up postgres redis
+
+# Terminal 2 — API with hot reload (uses localhost:5432 / localhost:6379 from .env)
+npm run dev
+
+# Terminal 3 — Worker with hot reload
+npm run dev:worker
+```
+
+> Make sure your `.env` has `DATABASE_URL=postgresql://relay:relay@localhost:5432/relay_dev` and `REDIS_URL=redis://localhost:6379` for this workflow. The compose file overrides these to the service-network hostnames only for the containerised `api`/`worker` services.
+
+### Dev Mode — full stack in Docker
+
+```bash
+# From repo root — builds both images + starts all 4 services
+docker compose -f infra/docker/docker-compose.yml up --build
+
+# Rebuild a single service after a code change
+docker compose -f infra/docker/docker-compose.yml up --build api
+
+# Run in detached mode
+docker compose -f infra/docker/docker-compose.yml up --build -d
+```
+
+Run migrations before the first start (or after schema changes):
+
+```bash
+docker compose -f infra/docker/docker-compose.yml run --rm api npx prisma migrate deploy
+```
+
+### Production
+
+Production images are built the same way — just supply real secrets via environment variables instead of `.env`. **Never bake secrets into the image.**
+
+```bash
+# Build and tag
+docker build -f infra/docker/Dockerfile -t relay-api:latest .
+docker build -f infra/docker/Dockerfile.worker -t relay-worker:latest .
+
+# Run API — inject secrets at runtime
+docker run -d \
+  -p 5000:5000 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL="postgresql://..." \
+  -e REDIS_URL="redis://..." \
+  -e JWT_PRIVATE_KEY="$(cat private.pem)" \
+  -e JWT_PUBLIC_KEY="$(cat public.pem)" \
+  -e RESEND_API_KEY="re_..." \
+  relay-api:latest
+
+# Run Worker — same secrets, no port needed
+docker run -d \
+  -e NODE_ENV=production \
+  -e DATABASE_URL="postgresql://..." \
+  -e REDIS_URL="redis://..." \
+  -e JWT_PRIVATE_KEY="$(cat private.pem)" \
+  -e JWT_PUBLIC_KEY="$(cat public.pem)" \
+  -e RESEND_API_KEY="re_..." \
+  relay-worker:latest
+```
+
+In CI/CD (ECS/etc.) load secrets from AWS Secrets Manager — never from `.env` files. See [`docs/terraform-aws-infra.md`](./terraform-aws-infra.md) for the full AWS setup.
+
+### Tear-down
+
+```bash
+# Stop services, keep postgres volume (data survives)
+docker compose -f infra/docker/docker-compose.yml down
+
+# Stop and wipe all data (clean slate)
+docker compose -f infra/docker/docker-compose.yml down -v
+```
+
+---
+
 ## Environment Variables in Docker
 
 All required variables are documented in [`.env.example`](../.env.example). When running under compose, the `DATABASE_URL` and `REDIS_URL` in the service-level `environment` block override anything in `.env`, pointing connections at the compose service names (`postgres`, `redis`) instead of `localhost`.

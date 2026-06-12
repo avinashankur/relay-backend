@@ -1,0 +1,68 @@
+# Run from repo root: docker compose -f infra/docker/docker-compose.yml <command>
+
+services:
+  # Infrastructure — Postgres 16
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: relay
+      POSTGRES_PASSWORD: relay
+      POSTGRES_DB: relay_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relay -d relay_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Infrastructure — Redis 7
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API — Express 5 HTTP server (src/server.ts)
+  api:
+    build:
+      context: ../.. # repo root — Docker context must include src/, prisma/, etc.
+      dockerfile: infra/docker/Dockerfile
+    env_file: ../../.env
+    environment:
+      # These override the .env values so connections target the compose network
+      DATABASE_URL: postgresql://relay:relay@postgres:5432/relay_dev
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Worker — BullMQ email queue + cleanup cron (src/worker.ts)
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql://relay:relay@postgres:5432/relay_dev
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

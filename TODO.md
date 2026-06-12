@@ -108,7 +108,7 @@ Goal: align repo documentation with the actual system boundary and make the proj
 - [x] `DOCS-03` `P1` `Done` Add a `.env.example` that reflects the current validated environment contract without shipping real secrets.
 - [x] `DOCS-04` `P2` `Blocked` Keep deployment and infrastructure work tracked as future backlog items, but stop presenting them as if they already exist in-repo.
 - [ ] `DOCS-05` `P2` `Not started` Add an observability backlog covering Sentry wiring, request IDs, metrics, and an incident runbook once the API surface is stable.
-- [ ] `DOCS-06` `P2` `Not started` Add Docker multi-stage builds and docker-compose setup for containerized local development and deployment. Design doc written at `docs/docker.md`; actual `Dockerfile`, `Dockerfile.worker`, and `docker-compose.yml` in `infra/docker/` not yet created.
+- [x] `DOCS-06` `P2` `Done` Add Docker multi-stage builds and docker-compose setup for containerized local development and deployment. `Dockerfile`, `Dockerfile.worker`, and `docker-compose.yml` created in `infra/docker/`.
 - [ ] `DOCS-07` `P2` `In progress` Create Terraform infrastructure-as-code for AWS/Cloud deployment (VPC, ECS/EC2, RDS, ElastiCache). Design doc written at `docs/terraform-aws-infra.md`; actual `.tf` files and `infra/` directory not yet created.
 - [x] `DOCS-08` `P2` `Done` Add a Git workflow and CI/CD pipeline guide (`docs/git-cicd-workflow.md`) covering basics through Relay-specific practice for engineers new to CI/CD.
 

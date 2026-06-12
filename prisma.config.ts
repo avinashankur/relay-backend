@@ -9,14 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
-
-  // ── Datasource ───────────────────────────────────────────────────────────
-  // Prisma 7: the url block here is for the CLI (migrate, studio).
-  // For Neon, pass the *direct* (non-pooled) URL so `prisma migrate`
-  // can open a long-lived connection — the pooler URL breaks DDL.
-  //
-  //   DATABASE_URL        → pooled Neon URL  (used by PrismaNeon adapter at runtime)
-  //   DIRECT_DATABASE_URL → direct Neon URL  (used by the CLI for migrations)
   datasource: {
     url: env("DATABASE_URL"),
   },
