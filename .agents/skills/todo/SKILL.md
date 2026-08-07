@@ -1,5 +1,5 @@
 ---
-name: todo-manager
+name: todo
 description: >
   Maintain a living TODO.md file that tracks all project tasks. Use this skill
   whenever you: create or update a TODO file, complete a task and need to mark it
