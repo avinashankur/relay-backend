@@ -1,8 +1,42 @@
-﻿# Architecture Documentation Reference
+# Architecture Documentation Reference
 
 ## Purpose
 
 Architecture documentation explains how the system is structured — the big picture that a new engineer needs before they touch code. Its job is to orient, not to exhaust. It answers: What components exist? How do they talk to each other? Why are they structured this way?
+
+## File Placement Strategy
+
+### Root `ARCHITECTURE.md`
+
+- Lives at the repository root
+- Describes the current state of the entire system — the big picture
+- A new engineer reads this first before touching any code
+- Answers: What components exist? How do they talk to each other? Why are they structured this way?
+- Always reflects the current state, not aspirational/future state
+- Must be updated whenever the system structure changes
+
+### Per-module `ARCHITECTURE.md` (optional)
+
+- Lives inside a module/package directory (e.g., `packages/auth/ARCHITECTURE.md`, `services/billing/ARCHITECTURE.md`)
+- Describes that module's internal structure only — its layers, patterns, data flow, and key classes
+- Only create one when a module is complex enough that its internal architecture is non-obvious from the code
+- Must cross-reference the root ARCHITECTURE.md ("This module sits in the [Auth layer] of the root architecture")
+
+### When to use which
+
+| Situation                                    | File                                              |
+| -------------------------------------------- | ------------------------------------------------- |
+| New project, single service                  | Root ARCHITECTURE.md only                         |
+| Monorepo with multiple packages              | Root + one per complex package                    |
+| Microservices                                | Root (showing service topology) + one per service |
+| A module has >3 internal layers or >10 files | Consider a per-module ARCHITECTURE.md             |
+| A module is a thin wrapper or CRUD           | Skip — root doc is sufficient                     |
+
+### Cross-referencing
+
+- Root doc should list all modules and link to their per-module architecture docs if they exist
+- Per-module docs should link back to the root and reference their position in the system context
+- Keep the root doc as the single source of truth for inter-module communication and system boundaries
 
 ## Standard: The C4 Model
 

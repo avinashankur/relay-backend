@@ -33,17 +33,16 @@ Do NOT write an ADR for:
 
 Typical conventions:
 
-- docs/decisions/ADR-001-use-postgresql.md
+- docs/adr/001-use-postgresql.md (default)
+- docs/adr/ADR-001-use-postgresql.md
 - docs/architecture/decisions/0001-record-architecture-decisions.md
-- dr/2024-01-15-choose-monorepo.md
-
-Ask the user which convention they use, or propose docs/decisions/ADR-NNN-short-title.md if none exists.
+- adr/2024-01-15-choose-monorepo.md
 
 ## ADR Template
 
 ---
 
-# ADR-[NNN]: [Short, imperative title — what was decided]
+# [NNN]-ADR: [Short, imperative title — what was decided]
 
 **Date:** YYYY-MM-DD
 **Status:** Proposed | Accepted | Deprecated | Superseded by ADR-[NNN]
