@@ -153,6 +153,13 @@ export class AuthService {
       throw new AuthError("ACCOUNT_DELETED", "This account has been deleted");
     }
 
+    if (user.suspended) {
+      throw new AuthError(
+        "ACCOUNT_SUSPENDED",
+        "This account has been suspended",
+      );
+    }
+
     // TODO(P0): enforce email-verification gate at login once the resend flow is
     // validated end-to-end and the policy decision is made. See TODO.md [SEC-01].
     // if (!user.emailVerified) {
