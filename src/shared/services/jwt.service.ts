@@ -6,7 +6,6 @@ import { AuthError } from "../errors/AuthError";
 const ALGORITHM = "RS256"; // not symmetric like HS256
 const ISSUER = "relay";
 const AUDIENCE = "relay:api";
-const ACCESS_TTL = "15m";
 
 export interface AccessTokenPayload extends JWTPayload {
   sub: string; // userId
@@ -52,7 +51,7 @@ export class JwtService {
 
   /**
    * Sign a new access token for the given user/session.
-   * TTL is fixed at 15 minutes
+   * TTL is configured by env.JWT_ACCESS_TTL_SECONDS.
    */
   async sign(
     payload: Omit<AccessTokenPayload, "iss" | "aud" | "exp">,
@@ -64,7 +63,7 @@ export class JwtService {
       .setIssuer(ISSUER)
       .setAudience(AUDIENCE)
       .setIssuedAt()
-      .setExpirationTime(ACCESS_TTL)
+      .setExpirationTime(`${env.JWT_ACCESS_TTL_SECONDS} seconds`)
       .sign(this.privateKey);
   }
 
@@ -85,7 +84,14 @@ export class JwtService {
       return payload as AccessTokenPayload;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      if (message.includes("expired")) {
+      if (
+        (err &&
+          typeof err === "object" &&
+          "code" in err &&
+          err.code === "ERR_JWT_EXPIRED") ||
+        message.includes("expired") ||
+        message.includes('claim "exp" validation failed')
+      ) {
         throw new AuthError("TOKEN_EXPIRED", "Access token has expired");
       }
       throw new AuthError("INVALID_TOKEN", "Access token is invalid");
