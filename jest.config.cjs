@@ -12,6 +12,7 @@ const config = {
         "^@/(.*)\\.js$": "<rootDir>/src/$1",
         "^@/(.*)$": "<rootDir>/src/$1",
       },
+      setupFiles: ["<rootDir>/jest.integration.env.cjs"],
       setupFilesAfterEnv: [],
       coverageDirectory: "<rootDir>/coverage/unit",
       collectCoverageFrom: [

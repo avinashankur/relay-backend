@@ -200,20 +200,20 @@ describe("AuthService", () => {
       );
     });
 
-    it("allows login even when email is not verified (current behavior)", async () => {
+    it("blocks login when email is not verified outside development", async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         ...baseUser,
         emailVerified: false,
         authAccounts: [baseAuthAccount],
       });
 
-      const result = await service.login(
-        { email: "test@example.com", password: "StrongPass1!" },
-        "1.2.3.4",
-        "",
-      );
-
-      expect(result.accessToken).toBe("mock.access.token");
+      await expect(
+        service.login(
+          { email: "test@example.com", password: "StrongPass1!" },
+          "1.2.3.4",
+          "",
+        ),
+      ).rejects.toThrow(AuthError);
     });
 
     it("throws if user does not exist", async () => {

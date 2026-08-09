@@ -9,6 +9,7 @@ import type { RedisService } from "@/shared/services/redis.service.js";
 import type { EmailService } from "@/shared/services/email.service.js";
 import type { OtpStrategy } from "./strategies/otp.strategy.js";
 import type { LoginInput, SignupInput } from "./auth.validators";
+import { env } from "@/config/env.js";
 
 export interface AuthTokens {
   accessToken: string;
@@ -160,14 +161,12 @@ export class AuthService {
       );
     }
 
-    // TODO(P0): enforce email-verification gate at login once the resend flow is
-    // validated end-to-end and the policy decision is made. See TODO.md [SEC-01].
-    // if (!user.emailVerified) {
-    //   throw new AuthError(
-    //     "EMAIL_NOT_VERIFIED",
-    //     "Please verify your email before logging in",
-    //   );
-    // }
+    if (!user.emailVerified && env.NODE_ENV !== "development") {
+      throw new AuthError(
+        "EMAIL_NOT_VERIFIED",
+        "Please verify your email before logging in",
+      );
+    }
 
     const { accessToken, refreshToken } = await this.sessionService.create({
       userId: user.id,
@@ -378,6 +377,15 @@ export class AuthService {
       where: { userId, provider: "password" },
       data: { credential: credentialHash },
     });
+
+    // Auto-verify email on successful password reset
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (user && !user.emailVerified) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { emailVerified: true },
+      });
+    }
 
     // Revoke all active sessions
     await this.sessionService.revokeAllForUser(userId);
