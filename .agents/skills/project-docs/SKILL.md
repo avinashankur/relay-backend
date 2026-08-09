@@ -48,7 +48,7 @@ docs/
 │   └── .gitkeep
 ├── concepts/            # Deep-dives, math, and explanations
 │   └── .gitkeep
-├── runbooks/            # Ops/SRE playbooks for incidents
+├── runbooks/            # Incident & troubleshooting playbooks (local dev first, production second)
 │   └── .gitkeep
 └── prd.md               # Product requirements (use template from references/product-md.md)
 ```
@@ -266,10 +266,12 @@ This mode runs when the user invokes the skill with a doc type but no further pr
 
 1. Read all files in `docs/runbooks/`
 2. Scan the codebase for:
+   - Critical services or infrastructure dependencies without incident response procedures (Redis, Postgres, external APIs, background workers)
+   - Error handling code or retry logic that suggests known failure modes not yet documented
    - Alert definitions or monitoring configs without corresponding runbooks
-   - Critical services or infrastructure without incident response procedures
-   - Error handling code that suggests failure modes not yet documented
+   - Common local development pain points (e.g., services that require specific startup order, fragile env var configs)
 3. Recommend the next 1–3 runbooks to write
+4. For each recommendation, note whether it primarily affects **local development**, **production**, or **both** — this sets the reader's expectations
 
 #### How-Tos (`/project-docs how-tos`)
 
@@ -326,7 +328,7 @@ Read existing files the user provides. If they have not provided any, ask for th
 - For Architecture: existing diagrams, system description, tech stack
 - For ADR: the decision being made, alternatives considered, constraints
 - For README: the project codebase, existing README (if any)
-- For Runbook: the system it covers, the failure scenarios
+- For Runbook: the system it covers, the failure scenarios, and whether a local development section is needed (default: yes — always include dev first)
 - For How-To: the task, who performs it, how often
 - For Concept: the algorithm/pattern, what code uses it, prerequisite knowledge
 - For CONTEXT.md / PRODUCT.md: anything describing the project's purpose, users, tech
@@ -408,8 +410,8 @@ This is the standard docs layout this skill enforces. Use this as the source of 
     ├── how-tos/           # Actionable dev guides (created on demand, not during scaffold)
     │   ├── how-to-setup-local-ssl.md
     │   └── how-to-run-migrations.md
-    ├── runbooks/          # Ops/SRE playbooks for incidents
-    │   └── database-connection-failure.md
+    ├── runbooks/          # Incident & troubleshooting playbooks — local dev first, production second
+    │   └── 001-redis-outage.md
     └── prd.md             # Product requirements document
 ```
 
@@ -434,7 +436,7 @@ This is the standard docs layout this skill enforces. Use this as the source of 
 | ADR          | Concise, decision-focused   | Short — 1-2 pages max                        |
 | README       | Welcoming, scannable        | Short — fits on one screen ideally           |
 | Deployment   | Procedural, exact           | Medium — step-by-step                        |
-| Runbook      | Urgent, action-oriented     | Short — someone reads this under pressure    |
+| Runbook      | Urgent, action-oriented     | Medium — **local dev section first and detailed**, production section second and generic |
 | How-To       | Imperative, procedural      | Short-medium — one task, nothing else        |
 | Concept      | Explanatory, precise, deep  | Medium-long — as deep as the concept demands |
 | CONTEXT.md   | Dense, factual              | Short — AI/agent context primer              |
