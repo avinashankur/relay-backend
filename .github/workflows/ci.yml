@@ -38,6 +38,11 @@ jobs:
 
       - name: Unit tests
         run: npm test
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          JWT_PRIVATE_KEY: dummy_private_key
+          JWT_PUBLIC_KEY: dummy_public_key
+          RESEND_API_KEY: dummy_resend_api_key
 
       - name: Build
         run: npm run build
