@@ -3,7 +3,6 @@
 > **Canonical reference for `/api/v1/auth/*` endpoints.**
 > Derived directly from live source in `src/modules/auth/`. Update this file
 > whenever the router, controller, or cookie utility changes.
-> See TODO.md [AUTH-08].
 
 ---
 
@@ -48,11 +47,6 @@ Two HTTP-only cookies are used for browser sessions.
 | `access_token`  | RS256 JWT         | `/`                     | `/`        | `Strict`        | `Lax`          | `true` | `JWT_ACCESS_TTL_SECONDS` (ms)  |
 | `refresh_token` | opaque random hex | `/api/v1/auth/refresh`¹ | `/`        | `Strict`        | `Lax`          | `true` | `JWT_REFRESH_TTL_SECONDS` (ms) |
 
-> ¹ **Known defect** — production `path` is currently set to `/api/auth/v1/refresh`
-> in `src/shared/utils/cookies.ts` (line 29) but the route is mounted at
-> `/api/v1/auth/refresh`. The browser will not send the refresh cookie to the
-> correct path in production. Fix: change the path to `/api/v1/auth/refresh`.
-
 **Dev defaults** (env `NODE_ENV != production`):
 
 - `Secure: false` — works over plain HTTP.
@@ -71,12 +65,11 @@ Two HTTP-only cookies are used for browser sessions.
   "role": "user" | "admin",
   "sessionId": "<sessionId>",
   "iat": <unix>,
-  "exp": <unix>   // iat + 900 seconds (15 min, hardcoded in JwtService)
+  "exp": <unix>   // iat + JWT_ACCESS_TTL_SECONDS
 }
 ```
 
-Algorithm: **RS256**. The `exp` is fixed at 15 minutes regardless of `JWT_ACCESS_TTL_SECONDS`
-(that env var only controls the cookie `maxAge`, not the JWT TTL).
+Algorithm: **RS256**. The `exp` is determined by `JWT_ACCESS_TTL_SECONDS` (which also controls the cookie `maxAge`).
 
 ### Refresh token format
 
@@ -625,11 +618,10 @@ Retry-After: <seconds>
 
 ## Known Issues / Deferred Behaviour
 
-| Ref                      | Description                                                                                                                                                                       |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cookies.ts:29`          | Production `refresh_token` cookie path is `/api/auth/v1/refresh` but route is at `/api/v1/auth/refresh`. Browsers will not send the cookie to the refresh endpoint in production. |
-| `auth.service.ts:156`    | Email-verification gate at login is commented out. Unverified users can log in. Track resolution under SEC-01 (comment references that task).                                     |
-| `auth.controller.ts:168` | Magic-link callback has a commented-out JSON response alternative. Current behaviour is always a `302` redirect.                                                                  |
+| Ref                      | Description                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.service.ts:156`    | Email-verification gate at login is commented out. Unverified users can log in.                                                                                     |
+| `auth.controller.ts:168` | Magic-link callback has a commented-out JSON response alternative. Current behaviour is always a `302` redirect. (Commented code can be removed without any issue.) |
 
 ---
 

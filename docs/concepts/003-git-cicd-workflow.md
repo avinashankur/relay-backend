@@ -1,9 +1,5 @@
 # Git Workflow & CI/CD Pipeline Guide
 
-> **Project:** Relay — a TypeScript/Express authentication backend on GitHub.
-
----
-
 ## Table of Contents
 
 1. [Why CI/CD Exists](#1-why-cicd-exists)
@@ -14,7 +10,7 @@
 6. [What is CI (Continuous Integration)?](#6-what-is-ci-continuous-integration)
 7. [What is CD (Continuous Deployment/Delivery)?](#7-what-is-cd-continuous-deploymentdelivery)
 8. [GitHub Actions — the CI/CD engine](#8-github-actions--the-cicd-engine)
-9. [Relay's Planned Pipeline in Detail](#9-relays-planned-pipeline-in-detail)
+9. [A Typical Pipeline in Detail](#9-a-typical-pipeline-in-detail)
 10. [Environment Promotion — dev → staging → prod](#10-environment-promotion--dev--staging--prod)
 11. [Secrets & Environment Variables in CI](#11-secrets--environment-variables-in-ci)
 12. [Rolling Back a Bad Deployment](#12-rolling-back-a-bad-deployment)
@@ -111,7 +107,7 @@ main:       A ← B ← C ← D' ← E'
                          (D and E replayed with new SHAs)
 ```
 
-> **Rule of thumb for Relay:** use **merge** (via pull requests on GitHub) for
+> **Rule of thumb:** use **merge** (via pull requests on GitHub) for
 > integrating feature branches into `main`. Rebase is fine locally to keep your
 > branch clean before opening a PR.
 
@@ -119,7 +115,7 @@ main:       A ← B ← C ← D' ← E'
 
 ## 3. Branching Strategy
 
-Relay follows a simplified **GitHub Flow**:
+A typical project follows a simplified **GitHub Flow**:
 
 ```
 main  ──────────────────────────────────────────────────────►
@@ -162,7 +158,7 @@ git push -u origin feat/otp-verify
 
 ## 4. The Local Safety Net — Husky & lint-staged
 
-Before your code ever reaches GitHub, Relay has two layers of local enforcement.
+Before your code ever reaches GitHub, a project should have layers of local enforcement.
 
 ### 4.1 Husky — git hooks made easy
 
@@ -171,7 +167,7 @@ moment in the git workflow (e.g. just before `git commit` runs). Husky makes
 managing these hooks easy and keeps them in version control so every developer
 gets them automatically.
 
-Relay's hook lives at [`.husky/pre-commit`](file:///e:/projects/relay/.husky/pre-commit):
+The hook typically lives at `.husky/pre-commit`:
 
 ```sh
 npm test
@@ -195,7 +191,7 @@ Running ESLint and Prettier over the _entire_ codebase on every commit would be
 too slow. `lint-staged` solves this by running the configured tools only over
 **files that are staged** (added to the commit with `git add`).
 
-Config in [`package.json`](file:///e:/projects/relay/package.json):
+Config in `package.json`:
 
 ```json
 "lint-staged": {
@@ -250,7 +246,7 @@ GitHub → your repo → "Compare & pull request" button
 Or directly:
 
 ```
-https://github.com/avinashankur/super-auth-backend/compare/feat/otp-verify
+https://github.com/organization/project/compare/feat/otp-verify
 ```
 
 ### 5.2 What GitHub does next (the automation hooks in)
@@ -292,9 +288,9 @@ not just before release".
 A CI pipeline is a sequence of jobs. Each job runs a shell-like script on a
 fresh virtual machine (called a **runner**) provided by GitHub.
 
-### 6.1 What CI checks on Relay
+### 6.1 What CI checks
 
-Given Relay's `package.json` scripts, a complete CI pipeline would run:
+Given typical `package.json` scripts, a complete CI pipeline would run:
 
 | Step              | Command                    | Purpose                                                 |
 | ----------------- | -------------------------- | ------------------------------------------------------- |
@@ -340,7 +336,7 @@ deploy) and move toward Continuous Deployment as confidence grows.
 
 ### 7.2 What a deploy step does at the infrastructure level
 
-For a Node.js backend like Relay the deploy pipeline typically:
+For a typical Node.js backend, the deploy pipeline typically:
 
 1. **Builds a Docker image** — a self-contained snapshot of the app with all
    its dependencies baked in.
@@ -425,10 +421,10 @@ jobs:
 
 ---
 
-## 9. Relay's Planned Pipeline in Detail
+## 9. A Typical Pipeline in Detail
 
-The architecture doc describes three planned workflows. Here is what each one
-does and why it is structured that way.
+Let's look at three typical workflows. Here is what each one
+does and why it might be structured that way.
 
 ### 9.1 `ci.yml` — runs on every PR and push
 
@@ -466,9 +462,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: relay
-          POSTGRES_PASSWORD: relay
-          POSTGRES_DB: relay_test
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+          POSTGRES_DB: mydb_test
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready
@@ -482,7 +478,7 @@ jobs:
           --health-interval 10s
 
     env:
-      DATABASE_URL: postgresql://relay:relay@localhost:5432/relay_test
+      DATABASE_URL: postgresql://myuser:mypassword@localhost:5432/mydb_test
       REDIS_URL: redis://localhost:6379
       NODE_ENV: test
 
@@ -533,13 +529,13 @@ jobs:
       - run: npm run build
 
       - name: Build Docker image
-        run: docker build -t relay-api:${{ github.sha }} -f infra/docker/Dockerfile .
+        run: docker build -t my-api:${{ github.sha }} -f infra/docker/Dockerfile .
 
       - name: Push to ECR
         run: |
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
-          docker tag relay-api:${{ github.sha }} $ECR_REGISTRY/relay-api:${{ github.sha }}
-          docker push $ECR_REGISTRY/relay-api:${{ github.sha }}
+          docker tag my-api:${{ github.sha }} $ECR_REGISTRY/my-api:${{ github.sha }}
+          docker push $ECR_REGISTRY/my-api:${{ github.sha }}
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -553,8 +549,8 @@ jobs:
       - name: Update ECS service
         run: |
           aws ecs update-service \
-            --cluster relay-staging \
-            --service relay-api \
+            --cluster my-staging-cluster \
+            --service my-api \
             --force-new-deployment
 ```
 
@@ -604,7 +600,7 @@ Staging is a production-clone environment that is safe to break. It is where:
 - Integration with third-party services (Resend, OAuth providers) is tested with
   real API calls but no real customer data.
 
-### What "production-like" means for Relay
+### What "production-like" means
 
 | Resource | Local dev       | Staging            | Production      |
 | -------- | --------------- | ------------------ | --------------- |
@@ -618,7 +614,7 @@ Staging is a production-clone environment that is safe to break. It is where:
 
 ## 11. Secrets & Environment Variables in CI
 
-Relay's `.env` contains sensitive values (database URLs, RSA private keys, API
+The `.env` file contains sensitive values (database URLs, RSA private keys, API
 keys). **These are never committed to the repository** — `.gitignore` excludes
 `.env`.
 
@@ -640,7 +636,7 @@ steps:
 secret value. GitHub redacts these values from log output automatically — you
 will never see a secret printed in a build log.
 
-### What to store as a GitHub Secret for Relay
+### What to store as a GitHub Secret
 
 | Secret name             | What it holds                                    |
 | ----------------------- | ------------------------------------------------ |
@@ -676,9 +672,9 @@ git log --oneline main | head -5
 
 # Re-deploy the previous image
 aws ecs update-service \
-  --cluster relay-prod \
-  --service relay-api \
-  --task-definition relay-api:91cc4ab   # the previous SHA
+  --cluster my-prod-cluster \
+  --service my-api \
+  --task-definition my-api:91cc4ab   # the previous SHA
 ```
 
 ### 12.2 Git revert
@@ -760,47 +756,3 @@ Total elapsed time from step 5 to step 12: typically 5–10 minutes on a small
 Node.js backend.
 
 ---
-
-## 14. Current State & What to Build Next
-
-Relay already has the **local gate** (Husky + lint-staged) in place. The CI
-pipeline and CD automation are the next milestone (see `TODO.md [TEST-05]` and
-`TODO.md [TEST-06]`).
-
-### What exists today
-
-| Layer                 | Status  | Details                                                |
-| --------------------- | ------- | ------------------------------------------------------ |
-| Local pre-commit hook | ✅ Done | `.husky/pre-commit` runs tests, lint-staged, and build |
-| Unit tests            | ✅ Done | `npm test` runs Jest unit suites                       |
-| Integration tests     | ✅ Done | `npm run test:integration` for signup/login/refresh    |
-| Typecheck script      | ✅ Done | `npm run typecheck`                                    |
-| Build script          | ✅ Done | `npm run build` compiles TS → `dist/`                  |
-
-### What to build next
-
-| Step | Task                                                                                                                              | TODO ref  |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1    | Create `.github/workflows/ci.yml` with lint, typecheck, unit tests, integration tests (with Postgres + Redis services), and build | [TEST-05] |
-| 2    | Define test data strategy: seed script, Prisma reset between test suites, Redis flush in setup                                    | [TEST-06] |
-| 3    | Add branch protection rules on `main` requiring CI to pass                                                                        | —         |
-| 4    | Add `deploy-staging.yml` triggered on push to `develop`                                                                           | [DOCS-06] |
-| 5    | Write `infra/docker/Dockerfile` (multi-stage: build → runtime)                                                                    | [DOCS-06] |
-| 6    | Add `deploy-prod.yml` with manual approval gate                                                                                   | [DOCS-07] |
-
-### Suggested first CI workflow file location
-
-```
-.github/
-└── workflows/
-    └── ci.yml   ← start here
-```
-
-This file does not exist yet. Creating it will immediately give the project
-automated verification on every pull request — the single highest-value
-improvement currently available.
-
----
-
-_Document maintained as part of the Relay engineering docs. For the full backlog
-see [`TODO.md`](file:///e:/projects/relay/TODO.md)._

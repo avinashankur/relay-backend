@@ -1,10 +1,4 @@
-# Terraform AWS Infrastructure — Relay
-
-> **Status**: Planned future-state. This document specifies the target Terraform
-> layout described in `docs/architecture.md`. No `infra/` directory exists in the
-> repository yet. See `TODO.md [DOCS-07]` for the backlog entry tracking this work.
-
----
+# Terraform AWS Infrastructure
 
 ## Table of Contents
 
@@ -31,7 +25,7 @@
 
 ## 1. Overview
 
-Relay is a stateful TypeScript auth backend with three runtime processes:
+A typical stateful TypeScript backend might have multiple runtime processes:
 
 | Process            | Description                                                               |
 | ------------------ | ------------------------------------------------------------------------- |
@@ -48,24 +42,24 @@ single ElastiCache Redis cluster.
                         │           AWS VPC            │
                         │   (10.0.0.0/16)              │
                         │                              │
-  Internet ─── ALB ─── │  ┌───────────┐               │
-  (HTTPS/443)          │  │  Public   │  NAT Gateway   │
-                        │  │  Subnets  │ ─────────────► │ ► Internet
+  Internet ─── ALB ───  │  ┌───────────┐               │
+  (HTTPS/443)           │  │  Public   │  NAT Gateway  │
+                        │  │  Subnets  │ ──────────────│─► Internet
                         │  └─────┬─────┘               │
                         │        │                     │
-                        │  ┌─────▼──────────────────┐  │
-                        │  │     Private Subnets     │  │
-                        │  │                         │  │
-                        │  │  ECS Fargate Cluster    │  │
-                        │  │  ┌──────────────────┐   │  │
-                        │  │  │  API Task (×N)   │   │  │
-                        │  │  ├──────────────────┤   │  │
-                        │  │  │ Worker Task (×1) │   │  │
-                        │  │  └──────────────────┘   │  │
-                        │  │                         │  │
-                        │  │  RDS Postgres           │  │
-                        │  │  ElastiCache Redis      │  │
-                        │  └─────────────────────────┘  │
+                        │  ┌─────▼───────────────────┐ │
+                        │  │     Private Subnets     │ │
+                        │  │                         │ │
+                        │  │  ECS Fargate Cluster    │ │
+                        │  │  ┌──────────────────┐   │ │
+                        │  │  │  API Task (×N)   │   │ │
+                        │  │  ├──────────────────┤   │ │
+                        │  │  │ Worker Task (×1) │   │ │
+                        │  │  └──────────────────┘   │ │
+                        │  │                         │ │
+                        │  │  RDS Postgres           │ │
+                        │  │  ElastiCache Redis      │ │
+                        │  └─────────────────────────┘ │
                         └──────────────────────────────┘
 ```
 
@@ -102,30 +96,30 @@ Before running Terraform you need:
 ```bash
 # Create the state bucket (run once per AWS account)
 aws s3api create-bucket \
-  --bucket relay-terraform-state-<your-account-id> \
+  --bucket myproject-terraform-state-<your-account-id> \
   --region us-east-1
 
 aws s3api put-bucket-versioning \
-  --bucket relay-terraform-state-<your-account-id> \
+  --bucket myproject-terraform-state-<your-account-id> \
   --versioning-configuration Status=Enabled
 
 # Create the DynamoDB lock table
 aws dynamodb create-table \
-  --table-name relay-terraform-locks \
+  --table-name myproject-terraform-locks \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
   --region us-east-1
 ```
 
-4. **A registered domain** (e.g. `relay.dev`) and an ACM certificate covering
-   `*.relay.dev` in `us-east-1` (required for ALB HTTPS).
+4. **A registered domain** (e.g. `example.com`) and an ACM certificate covering
+   `*.example.com` in `us-east-1` (required for ALB HTTPS).
 
 ---
 
 ## 3. Repository Layout
 
-The target `infra/` tree within the Relay monorepo:
+The target `infra/` tree within the repository:
 
 ```
 infra/
@@ -188,7 +182,7 @@ infra/
 
 ### 4.1 VPC
 
-**Purpose**: Isolates all Relay resources in a dedicated network with public
+**Purpose**: Isolates all project resources in a dedicated network with public
 subnets for load balancers and private subnets for compute and data.
 
 **Key resources:**
@@ -239,27 +233,27 @@ eliminate instance management overhead.
 
 **Key resources:**
 
-| Resource                        | Description                                               |
-| ------------------------------- | --------------------------------------------------------- |
-| `aws_ecs_cluster`               | Shared cluster — `relay-<env>`                            |
-| `aws_ecs_task_definition` (×3)  | `relay-api`, `relay-email-worker`, `relay-cleanup-worker` |
-| `aws_ecs_service` (×3)          | One service per task definition                           |
-| `aws_appautoscaling_target`     | CPU-based autoscaling for API service                     |
-| `aws_cloudwatch_log_group` (×3) | `/ecs/relay-<service>/<env>`                              |
+| Resource                        | Description                                      |
+| ------------------------------- | ------------------------------------------------ |
+| `aws_ecs_cluster`               | Shared cluster — `myproject-<env>`               |
+| `aws_ecs_task_definition` (×3)  | `my-api`, `my-email-worker`, `my-cleanup-worker` |
+| `aws_ecs_service` (×3)          | One service per task definition                  |
+| `aws_appautoscaling_target`     | CPU-based autoscaling for API service            |
+| `aws_cloudwatch_log_group` (×3) | `/ecs/myproject-<service>/<env>`                 |
 
 **Task CPU/Memory sizing:**
 
-| Service                | CPU | Memory  | Min Tasks              | Max Tasks               |
-| ---------------------- | --- | ------- | ---------------------- | ----------------------- |
-| `relay-api`            | 512 | 1024 MB | 1 (staging) / 2 (prod) | 4 (staging) / 10 (prod) |
-| `relay-email-worker`   | 256 | 512 MB  | 1                      | 1                       |
-| `relay-cleanup-worker` | 256 | 512 MB  | 1                      | 1                       |
+| Service             | CPU | Memory  | Min Tasks              | Max Tasks               |
+| ------------------- | --- | ------- | ---------------------- | ----------------------- |
+| `my-api`            | 512 | 1024 MB | 1 (staging) / 2 (prod) | 4 (staging) / 10 (prod) |
+| `my-email-worker`   | 256 | 512 MB  | 1                      | 1                       |
+| `my-cleanup-worker` | 256 | 512 MB  | 1                      | 1                       |
 
 **Container environment injection** (simplified task definition excerpt):
 
 ```hcl
 container_definitions = jsonencode([{
-  name      = "relay-api"
+  name      = "my-api"
   image     = "${var.ecr_repository_url}:${var.image_tag}"
   essential = true
 
@@ -286,7 +280,7 @@ container_definitions = jsonencode([{
   logConfiguration = {
     logDriver = "awslogs"
     options = {
-      awslogs-group         = "/ecs/relay-api/${var.environment}"
+      awslogs-group         = "/ecs/my-api/${var.environment}"
       awslogs-region        = var.aws_region
       awslogs-stream-prefix = "api"
     }
@@ -302,7 +296,7 @@ container_definitions = jsonencode([{
 }])
 ```
 
-> **Note**: The `relay-api` image and the `relay-email-worker` / `relay-cleanup-worker`
+> **Note**: The `my-api` image and the `my-email-worker` / `my-cleanup-worker`
 > images should be built from separate Dockerfiles (`Dockerfile` and `Dockerfile.worker`)
 > as documented in `docs/architecture.md`. The worker tasks should **not** expose any
 > port mappings and should not be registered with the ALB target group.
@@ -321,7 +315,7 @@ Workers are not internet-facing and are not connected to the ALB.
 | `aws_lb`                     | Internet-facing ALB in public subnets               |
 | `aws_lb_listener` (port 443) | HTTPS with ACM certificate                          |
 | `aws_lb_listener` (port 80)  | Redirects to HTTPS (301)                            |
-| `aws_lb_target_group`        | `relay-api` — health check `GET /health`            |
+| `aws_lb_target_group`        | `my-api` — health check `GET /health`               |
 | `aws_security_group`         | Allows `0.0.0.0/0:443` inbound; API SG inbound only |
 
 **Health check configuration:**
@@ -372,8 +366,8 @@ variable "instance_class"     { type = string }
 variable "allocated_storage"  { type = number }
 variable "multi_az"           { type = bool    default = false }
 variable "backup_retention"   { type = number  default = 7 }
-variable "db_name"            { type = string  default = "relay" }
-variable "db_username"        { type = string  default = "relay_app" }
+variable "db_name"            { type = string  default = "mydb" }
+variable "db_username"        { type = string  default = "dbuser" }
 variable "db_password"        { type = string  sensitive = true }
 variable "vpc_id"             { type = string }
 variable "subnet_ids"         { type = list(string) }
@@ -383,7 +377,7 @@ variable "allowed_sg_ids"     { type = list(string) }
 **Connection string format** (stored in Secrets Manager):
 
 ```
-postgresql://relay_app:<password>@<rds-endpoint>:5432/relay?schema=public&sslmode=require
+postgresql://dbuser:<password>@<rds-endpoint>:5432/mydb?schema=public&sslmode=require
 ```
 
 > Set `sslmode=require` in production. Prisma will enforce SSL when this is
@@ -430,10 +424,10 @@ rediss://:<auth-token>@<primary-endpoint>:6379
 
 **Key resources:**
 
-| Repository     | Image built from                 |
-| -------------- | -------------------------------- |
-| `relay/api`    | `infra/docker/Dockerfile`        |
-| `relay/worker` | `infra/docker/Dockerfile.worker` |
+| Repository         | Image built from                 |
+| ------------------ | -------------------------------- |
+| `myproject/api`    | `infra/docker/Dockerfile`        |
+| `myproject/worker` | `infra/docker/Dockerfile.worker` |
 
 **Lifecycle policy** (applied to both repositories):
 
@@ -486,16 +480,16 @@ container environment at launch time — never baked into the image.
   "RESEND_API_KEY": "re_live_...",
   "CSRF_SECRET": "<32+ char random string>",
   "SENTRY_DSN": "https://...@sentry.io/...",
-  "COOKIE_DOMAIN": ".relay.dev"
+  "COOKIE_DOMAIN": ".example.com"
 }
 ```
 
 **Secret naming convention:**
 
-| Environment | Secret Name            |
-| ----------- | ---------------------- |
-| Staging     | `relay/staging/app`    |
-| Production  | `relay/production/app` |
+| Environment | Secret Name                |
+| ----------- | -------------------------- |
+| Staging     | `myproject/staging/app`    |
+| Production  | `myproject/production/app` |
 
 > Generate RSA keys with `npm run generate-keys` (see `scripts/generate-keys.ts`).
 > Store the output PEM strings in Secrets Manager — **never commit private keys to Git**.
@@ -506,21 +500,21 @@ container environment at launch time — never baked into the image.
 
 **Purpose**: Defines the two IAM roles required by ECS Fargate.
 
-#### Task Execution Role (`relay-ecs-execution-role`)
+#### Task Execution Role (`myproject-ecs-execution-role`)
 
 Used by the ECS control plane to pull images and inject secrets. Required policies:
 
 - `AmazonECSTaskExecutionRolePolicy` (AWS managed)
-- Inline policy allowing `secretsmanager:GetSecretValue` on `relay/<env>/app`
+- Inline policy allowing `secretsmanager:GetSecretValue` on `myproject/<env>/app`
 - Inline policy allowing `ecr:GetAuthorizationToken`, `ecr:BatchGetImage`,
   `ecr:GetDownloadUrlForLayer`
 
-#### Task Role (`relay-ecs-task-role`)
+#### Task Role (`myproject-ecs-task-role`)
 
 Assumed by the running container process. Follow least-privilege:
 
 - No Secrets Manager access (secrets are injected at launch, not read at runtime)
-- `logs:CreateLogStream`, `logs:PutLogEvents` on `/ecs/relay-*`
+- `logs:CreateLogStream`, `logs:PutLogEvents` on `/ecs/myproject-*`
 - If Sentry or other AWS SDKs are used from within the container, add those
   specific permissions here
 
@@ -547,7 +541,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "relay"
+      Project     = "myproject"
       Environment = var.environment
       ManagedBy   = "terraform"
     }
@@ -560,10 +554,10 @@ provider "aws" {
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "relay-terraform-state-<your-account-id>"
-    key            = "relay/${var.environment}/terraform.tfstate"
+    bucket         = "myproject-terraform-state-<your-account-id>"
+    key            = "myproject/${var.environment}/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "relay-terraform-locks"
+    dynamodb_table = "myproject-terraform-locks"
     encrypt        = true
   }
 }
@@ -576,7 +570,7 @@ variable "aws_region"         { type = string  default = "us-east-1" }
 variable "environment"        { type = string }   # "staging" | "production"
 variable "image_tag"          { type = string  default = "latest" }
 variable "acm_certificate_arn" { type = string }
-variable "domain_name"        { type = string  default = "relay.dev" }
+variable "domain_name"        { type = string  default = "example.com" }
 ```
 
 ### `infra/terraform/envs/staging.tfvars`
@@ -584,7 +578,7 @@ variable "domain_name"        { type = string  default = "relay.dev" }
 ```hcl
 environment  = "staging"
 aws_region   = "us-east-1"
-domain_name  = "relay.dev"
+domain_name  = "example.com"
 # acm_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT:certificate/..."
 ```
 
@@ -593,7 +587,7 @@ domain_name  = "relay.dev"
 ```hcl
 environment  = "production"
 aws_region   = "us-east-1"
-domain_name  = "relay.dev"
+domain_name  = "example.com"
 # acm_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT:certificate/..."
 ```
 
@@ -604,25 +598,25 @@ domain_name  = "relay.dev"
 The table below cross-references every variable from `.env.example` with its
 AWS source in the production environment.
 
-| Variable                  | Production Source                                |
-| ------------------------- | ------------------------------------------------ |
-| `NODE_ENV`                | ECS task `environment` (hardcoded `production`)  |
-| `PORT`                    | ECS task `environment` (hardcoded `5000`)        |
-| `API_BASE_URL`            | ECS task `environment` (`https://api.relay.dev`) |
-| `DATABASE_URL`            | Secrets Manager → `relay/<env>/app`              |
-| `REDIS_URL`               | Secrets Manager → `relay/<env>/app`              |
-| `BULLMQ_REDIS_URL`        | Secrets Manager → `relay/<env>/app`              |
-| `JWT_PRIVATE_KEY`         | Secrets Manager → `relay/<env>/app`              |
-| `JWT_PUBLIC_KEY`          | Secrets Manager → `relay/<env>/app`              |
-| `JWT_ACCESS_TTL_SECONDS`  | ECS task `environment` (`900`)                   |
-| `JWT_REFRESH_TTL_SECONDS` | ECS task `environment` (`2592000`)               |
-| `RESEND_API_KEY`          | Secrets Manager → `relay/<env>/app`              |
-| `EMAIL_FROM`              | ECS task `environment`                           |
-| `CSRF_SECRET`             | Secrets Manager → `relay/<env>/app`              |
-| `COOKIE_DOMAIN`           | Secrets Manager → `relay/<env>/app`              |
-| `CORS_ORIGINS`            | ECS task `environment`                           |
-| `SENTRY_DSN`              | Secrets Manager → `relay/<env>/app`              |
-| `LOG_LEVEL`               | ECS task `environment` (`info`)                  |
+| Variable                  | Production Source                                  |
+| ------------------------- | -------------------------------------------------- |
+| `NODE_ENV`                | ECS task `environment` (hardcoded `production`)    |
+| `PORT`                    | ECS task `environment` (hardcoded `5000`)          |
+| `API_BASE_URL`            | ECS task `environment` (`https://api.example.com`) |
+| `DATABASE_URL`            | Secrets Manager → `myproject/<env>/app`            |
+| `REDIS_URL`               | Secrets Manager → `myproject/<env>/app`            |
+| `BULLMQ_REDIS_URL`        | Secrets Manager → `myproject/<env>/app`            |
+| `JWT_PRIVATE_KEY`         | Secrets Manager → `myproject/<env>/app`            |
+| `JWT_PUBLIC_KEY`          | Secrets Manager → `myproject/<env>/app`            |
+| `JWT_ACCESS_TTL_SECONDS`  | ECS task `environment` (`900`)                     |
+| `JWT_REFRESH_TTL_SECONDS` | ECS task `environment` (`2592000`)                 |
+| `RESEND_API_KEY`          | Secrets Manager → `myproject/<env>/app`            |
+| `EMAIL_FROM`              | ECS task `environment`                             |
+| `CSRF_SECRET`             | Secrets Manager → `myproject/<env>/app`            |
+| `COOKIE_DOMAIN`           | Secrets Manager → `myproject/<env>/app`            |
+| `CORS_ORIGINS`            | ECS task `environment`                             |
+| `SENTRY_DSN`              | Secrets Manager → `myproject/<env>/app`            |
+| `LOG_LEVEL`               | ECS task `environment` (`info`)                    |
 
 ---
 
@@ -632,7 +626,7 @@ AWS source in the production environment.
 
 ```bash
 # 1. Authenticate with AWS
-aws configure  # or use SSO: aws sso login --profile relay-prod
+aws configure  # or use SSO: aws sso login --profile myproject-prod
 
 # 2. Build and push images
 aws ecr get-login-password --region us-east-1 | \
@@ -642,13 +636,13 @@ aws ecr get-login-password --region us-east-1 | \
 IMAGE_TAG=$(git rev-parse --short HEAD)
 
 docker build -f infra/docker/Dockerfile \
-  -t relay/api:$IMAGE_TAG .
-docker tag relay/api:$IMAGE_TAG \
-  <account-id>.dkr.ecr.us-east-1.amazonaws.com/relay/api:$IMAGE_TAG
+  -t myproject/api:$IMAGE_TAG .
+docker tag myproject/api:$IMAGE_TAG \
+  <account-id>.dkr.ecr.us-east-1.amazonaws.com/myproject/api:$IMAGE_TAG
 docker push \
-  <account-id>.dkr.ecr.us-east-1.amazonaws.com/relay/api:$IMAGE_TAG
+  <account-id>.dkr.ecr.us-east-1.amazonaws.com/myproject/api:$IMAGE_TAG
 
-# Repeat for Dockerfile.worker → relay/worker
+# Repeat for Dockerfile.worker → myproject/worker
 
 # 3. Initialise Terraform
 cd infra/terraform
@@ -665,7 +659,7 @@ terraform apply staging.plan
 
 # 6. Seed secrets (one time)
 aws secretsmanager create-secret \
-  --name relay/staging/app \
+  --name myproject/staging/app \
   --secret-string file://secrets.staging.json
 ```
 
@@ -699,14 +693,14 @@ The recommended pattern is an ECS one-off task:
 
 ```bash
 aws ecs run-task \
-  --cluster relay-production \
-  --task-definition relay-api-migrate \
+  --cluster myproject-production \
+  --task-definition my-api-migrate \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[...],securityGroups=[...],assignPublicIp=DISABLED}" \
-  --overrides '{"containerOverrides":[{"name":"relay-api","command":["npx","prisma","migrate","deploy"]}]}'
+  --overrides '{"containerOverrides":[{"name":"my-api","command":["npx","prisma","migrate","deploy"]}]}'
 ```
 
-Define a dedicated `relay-api-migrate` task definition in the ECS module that
+Define a dedicated `my-api-migrate` task definition in the ECS module that
 uses the same image but overrides the command to `npx prisma migrate deploy`.
 This task runs to completion and exits — it should not be registered with any
 ECS service or ALB target group.
@@ -759,10 +753,10 @@ on-demand pricing, no reserved instances):
 
 ### ECS tasks fail to start
 
-1. Check CloudWatch Logs: `/ecs/relay-api/<env>` for startup errors.
+1. Check CloudWatch Logs: `/ecs/my-api/<env>` for startup errors.
 2. Verify the task execution role has `secretsmanager:GetSecretValue` on the
    correct secret ARN.
-3. Verify the ECR image URI and tag exist: `aws ecr describe-images --repository-name relay/api`.
+3. Verify the ECR image URI and tag exist: `aws ecr describe-images --repository-name myproject/api`.
 4. Confirm the ECS task security group allows outbound HTTPS (443) for ECR pulls
    and Secrets Manager calls.
 
@@ -785,7 +779,7 @@ on-demand pricing, no reserved instances):
    [§7 Deployment Workflow](#7-deployment-workflow).
 2. Check the migration task CloudWatch logs for the specific Prisma error.
 3. If migration is destructive, take an RDS snapshot first:
-   `aws rds create-db-snapshot --db-instance-identifier relay-<env> --db-snapshot-identifier pre-migration-<date>`.
+   `aws rds create-db-snapshot --db-instance-identifier myproject-<env> --db-snapshot-identifier pre-migration-<date>`.
 
 ### `terraform apply` fails on first run
 
@@ -794,5 +788,3 @@ on-demand pricing, no reserved instances):
 3. Check IAM permissions — the deploying user/role needs all policies listed in §2.
 
 ---
-
-_Last updated: May 2026 — See `TODO.md [DOCS-07]` for implementation status._

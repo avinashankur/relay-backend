@@ -19,7 +19,6 @@ Both share the same codebase, the same TypeScript build, and the same set of env
 
 ## File Layout
 
-
 ```
 relay/
 └── infra/
